@@ -392,6 +392,9 @@ public class BingoManager {
 
                 item.setItemMeta(meta);
 
+                // Update the player's map to reflect the completion
+                ultimateBingo.bingoMapManager.updatePlayerMap(player);
+
                 // Top up their rockets if using the correct loadout
                 ultimateBingo.bingoFunctions.topUpFirstFireworkRocketsStack(player);
 
@@ -876,10 +879,15 @@ public class BingoManager {
             }
             playerBingoCards.put(playerId, newCard);
 
-            // If player has GUI open, update it
+            // Update the player's map
             Player player = Bukkit.getPlayer(playerId);
-            if (player != null && player.getOpenInventory().getTopInventory().equals(playerGUI)) {
-                player.updateInventory();
+            if (player != null) {
+                ultimateBingo.bingoMapManager.updatePlayerMap(player);
+                
+                // If player has GUI open, update it
+                if (player.getOpenInventory().getTopInventory().equals(playerGUI)) {
+                    player.updateInventory();
+                }
             }
         }
     }

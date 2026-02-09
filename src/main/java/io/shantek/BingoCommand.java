@@ -59,7 +59,20 @@ public class BingoCommand implements CommandExecutor {
                 return true;
             } else if (args[0].equalsIgnoreCase("set") && player.isOp()) {
                 if (args.length < 2) {
-                    player.sendMessage(ChatColor.RED + "Usage: /bingo set <settingname|startbutton>");
+                    player.sendMessage(ChatColor.RED + "Usage: /bingo set <settingname|startbutton|hubspawn>");
+                    return true;
+                }
+
+                // Handle hubspawn separately — no sign/button needed
+                if (args[1].equalsIgnoreCase("hubspawn")) {
+                    if (!ultimateBingo.hubConfig.exists()) {
+                        player.sendMessage(ChatColor.RED + "hub.yml does not exist! Create it first to enable hub mode.");
+                    } else if (ultimateBingo.hubWorld.isEmpty() || !player.getWorld().getName().equalsIgnoreCase(ultimateBingo.hubWorld)) {
+                        player.sendMessage(ChatColor.RED + "You must be standing in the hub world to set the hub spawn!");
+                    } else {
+                        ultimateBingo.hubConfig.saveHubSpawn(player.getLocation());
+                        player.sendMessage(ChatColor.GREEN + "Hub spawn location saved successfully!");
+                    }
                     return true;
                 }
 
@@ -120,7 +133,9 @@ public class BingoCommand implements CommandExecutor {
 
             } else if (args[0].equalsIgnoreCase("reload") && player.hasPermission("shantek.ultimatebingo.settings")) {
                 ultimateBingo.configFile.reloadConfigFile();
-                player.sendMessage(ChatColor.GREEN + "Bingo config file reloaded.");
+                ultimateBingo.hubConfig.load();
+                ultimateBingo.reloadMapBackgrounds();
+                player.sendMessage(ChatColor.GREEN + "Bingo config + map background reloaded.");
                 return true;
             } else if (args[0].equalsIgnoreCase("leaderboard")) {
                 if (args.length == 1) {
@@ -517,7 +532,17 @@ public class BingoCommand implements CommandExecutor {
         // Get all online players as a List and scatter/teleport them all close together
         // reset their inventory and state and despawn everything off the ground
         List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
-        ultimateBingo.bingoFunctions.safeScatterPlayers(players, ultimateBingo.bingoSpawnLocation, 5);
+
+        // If hub mode is active, teleport players back to hub spawn
+        if (ultimateBingo.isHubModeActive() && ultimateBingo.hubSpawnLocation != null) {
+            for (Player p : players) {
+                if (ultimateBingo.bingoFunctions.isActivePlayer(p)) {
+                    p.teleport(ultimateBingo.hubSpawnLocation);
+                }
+            }
+        } else {
+            ultimateBingo.bingoFunctions.safeScatterPlayers(players, ultimateBingo.bingoSpawnLocation, 5);
+        }
         ultimateBingo.bingoSpawnLocation = null;
 
         // Schedule a delayed task to run after 2 seconds (40 ticks)
@@ -588,7 +613,17 @@ public class BingoCommand implements CommandExecutor {
         // Get all online players as a List and scatter/teleport them all close together
         // reset their inventory and state and despawn everything off the ground
         List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
-        ultimateBingo.bingoFunctions.safeScatterPlayers(players, ultimateBingo.bingoSpawnLocation, 5);
+
+        // If hub mode is active, teleport players back to hub spawn
+        if (ultimateBingo.isHubModeActive() && ultimateBingo.hubSpawnLocation != null) {
+            for (Player p : players) {
+                if (ultimateBingo.bingoFunctions.isActivePlayer(p)) {
+                    p.teleport(ultimateBingo.hubSpawnLocation);
+                }
+            }
+        } else {
+            ultimateBingo.bingoFunctions.safeScatterPlayers(players, ultimateBingo.bingoSpawnLocation, 5);
+        }
 
 
         // Schedule a delayed task to run after 2 seconds (40 ticks)

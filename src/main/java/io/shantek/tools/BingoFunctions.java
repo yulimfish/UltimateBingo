@@ -135,49 +135,19 @@ public class BingoFunctions
     }
 
     public void giveBingoCard(Player player) {
-        PlayerInventory inventory = player.getInventory(); // Get the player's inventory
-
-        // Check if the player already has a bingo card
-        if (hasBingoCard(inventory)) {
+        // Check if the player already has a bingo card map
+        if (ultimateBingo.bingoMapManager.hasBingoMap(player)) {
             player.sendMessage(ChatColor.YELLOW + "You already have a Bingo Card.");
-            return; // Stop further execution if they already have one
+            return;
         }
 
-        ItemStack bingoCard = new ItemStack(ultimateBingo.bingoCardMaterial);
-        ItemMeta itemMeta = bingoCard.getItemMeta();
-
-        if (itemMeta != null) {
-            // Set display name for the Bingo Card
-            itemMeta.setDisplayName(ChatColor.GOLD + "Bingo Card");
-
-            // Set lore with two lines
-            List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.GRAY + "Card type: " + (ultimateBingo.currentUniqueCard ? ChatColor.BLUE + "Unique" : ChatColor.BLUE + "Identical") + "/" + ultimateBingo.currentDifficulty);
-            lore.add(ChatColor.GRAY + "Win condition: " + (ultimateBingo.currentFullCard ? ChatColor.BLUE + "Full card" : ChatColor.BLUE + "Single row"));
-
-            itemMeta.setLore(lore); // Apply the lore to the item meta
-            bingoCard.setItemMeta(itemMeta); // Apply the modified item meta back to the item stack
-
-            // Check if the inventory is full
-            if (inventory.firstEmpty() == -1) {
-                player.sendMessage(ChatColor.RED + "Unable to give you a bingo card, your inventory is full.");
-            } else {
-                // Check if slot 0 is empty
-                if (inventory.getItem(0) == null) {
-                    inventory.setItem(0, bingoCard); // Place the bingo card in slot 0
-                } else {
-                    inventory.addItem(bingoCard); // Automatically places in the first available slot
-                }
-            }
-        } else {
-            // Log or handle the case where item meta couldn't be retrieved
-            Bukkit.getLogger().warning("Failed to retrieve item meta for Bingo Card.");
-        }
+        // Give the player a map with their bingo card
+        ultimateBingo.bingoMapManager.giveBingoMap(player);
     }
 
     private boolean hasBingoCard(PlayerInventory inventory) {
         for (ItemStack item : inventory.getContents()) {
-            if (item != null && item.getType() == ultimateBingo.bingoCardMaterial) {
+            if (item != null && item.getType() == Material.FILLED_MAP) {
                 ItemMeta meta = item.getItemMeta();
                 if (meta != null && meta.hasDisplayName() && meta.getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
                     return true; // Bingo card found

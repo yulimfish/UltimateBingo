@@ -17,6 +17,12 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Objects;
+import java.util.Arrays;
+import java.io.File;
+import java.awt.Color;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import org.bukkit.map.MapPalette;
 
 public final class UltimateBingo extends JavaPlugin {
     public BingoManager bingoManager;
@@ -26,6 +32,14 @@ public final class UltimateBingo extends JavaPlugin {
     public BingoPlayerGUIManager bingoPlayerGUIManager;
     public BingoPlayerGUIListener bingoPlayerGUIListener;
     public BingoCommand bingoCommand;
+    public BingoMapManager bingoMapManager;
+    // === Optional custom map background (128x128 PNG) ===
+    // Cached as map palette bytes for fast rendering. Reloadable via /bingo reload.
+    private volatile byte[] cachedParchmentBase = null;
+    private volatile byte[] cachedOverlayBase = null;
+    private volatile boolean[] cachedOverlayMask = null;
+    private final Object mapImageLock = new Object();
+
     public Location bingoSpawnLocation;
     public ConfigFile configFile;
     public int gameTime = 0;
@@ -35,13 +49,14 @@ public final class UltimateBingo extends JavaPlugin {
     public boolean bingoCardActive = false;
     public boolean respawnTeleport = true;
     public boolean bingoStarted = false;
-    public Material bingoCardMaterial = Material.COMPASS;
+    public Material bingoCardMaterial = Material.FILLED_MAP;
     public long gameStartTime;
     public boolean playedSinceReboot = false;
     public Metrics metrics;
 
     private SettingsManager settingsManager;
     public InGameConfigManager inGameConfigManager;
+    public HubConfig hubConfig;
 
     // Add Leaderboard field
     private Leaderboard leaderboard;
@@ -57,6 +72,12 @@ public final class UltimateBingo extends JavaPlugin {
     public boolean multiWorldServer = false;
     public boolean countSoloGames = false;
     public int shuffleIntervalMinutes = 5;
+
+    // Hub world settings (hidden config keys - manually added to config.yml)
+    public String hubWorld = "";
+    public String hubRegion = "";
+    public int hubTeleportDelay = 5;
+    public Location hubSpawnLocation = null;
 
     // Current game configuration - Implemented to allow
     // random assignment of game setup
@@ -93,6 +114,9 @@ public final class UltimateBingo extends JavaPlugin {
         // Save the instance of the plugin
         instance = this;
 
+        // Load cached map backgrounds (generated parchment + optional overlay image)
+        loadMapBackgrounds();
+
         // Initialize managers in the correct order
         settingsManager = new SettingsManager(this);
 
@@ -110,10 +134,12 @@ public final class UltimateBingo extends JavaPlugin {
         bingoGameGUIManager = new BingoGameGUIManager(this);
         bingoPlayerGUIManager = new BingoPlayerGUIManager(this);
         bingoFunctions = new BingoFunctions(this);
+        bingoMapManager = new BingoMapManager(this);
         cardTypes = new CardTypes(this);
         configFile = new ConfigFile(this);
         leaderboard = new Leaderboard(this);
         inGameConfigManager = new InGameConfigManager(this);
+        hubConfig = new HubConfig(this);
 
         // Register commands
         getCommand("bingo").setExecutor(bingoCommand);
@@ -132,6 +158,7 @@ public final class UltimateBingo extends JavaPlugin {
         // Ensure game settings exist
         configFile.checkforDataFolder();
         configFile.reloadConfigFile();
+        hubConfig.load();
 
         // Register bStats
         int pluginId = 21982;
@@ -146,6 +173,7 @@ public final class UltimateBingo extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new EntityDamageListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BingoPickupListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BingoInteractListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new BingoMapInteractListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BingoInventoryCloseListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BingoPlayerJoinListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BingoGUIListener(this), this);
@@ -176,12 +204,188 @@ public final class UltimateBingo extends JavaPlugin {
         if (bingoManager != null) {
             bingoManager.clearData();
         }
+        if (bingoMapManager != null) {
+            bingoMapManager.clearAllMaps();
+        }
         bingoStarted = false;
         instance = null;
     }
 
+    /**
+     * Check if hub mode is active. Requires multiWorldServer + non-empty hubWorld + non-empty hubRegion + WorldGuard.
+     */
+    public boolean isHubModeActive() {
+        return multiWorldServer
+                && hubWorld != null && !hubWorld.isEmpty()
+                && hubRegion != null && !hubRegion.isEmpty()
+                && io.shantek.tools.WorldGuardHelper.isAvailable();
+    }
+
     public static UltimateBingo getInstance() {
         return instance;
+    }
+
+
+    // ---------------------------------------------------------------------
+    // Map background caching + hot reload
+    // ---------------------------------------------------------------------
+
+    /**
+     * Returns a cached 128x128 parchment background as MapPalette bytes.
+     * Always available (generated on load).
+     */
+    public byte[] getCachedParchmentBase() {
+        return cachedParchmentBase;
+    }
+
+    /**
+     * Returns an optional cached 128x128 overlay image as MapPalette bytes, or null.
+     * Only pixels with mask=true should be applied (supports PNG transparency).
+     */
+    public byte[] getCachedOverlayBase() {
+        return cachedOverlayBase;
+    }
+
+    /**
+     * Mask for overlay pixels (true = draw overlay pixel, false = leave base as-is).
+     */
+    public boolean[] getCachedOverlayMask() {
+        return cachedOverlayMask;
+    }
+
+    /**
+     * Reload cached map backgrounds (used by /bingo reload).
+     */
+    public void reloadMapBackgrounds() {
+        loadMapBackgrounds();
+        if (bingoMapManager != null) {
+            bingoMapManager.forceRefreshAllMaps();
+        }
+    }
+
+    /**
+     * Loads the generated parchment background and (optionally) an overlay image from:
+     * plugins/UltimateBingo/map/base.png (must be 128x128 PNG).
+     */
+    private void loadMapBackgrounds() {
+        synchronized (mapImageLock) {
+            // Ensure folders exist
+            if (!getDataFolder().exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                getDataFolder().mkdirs();
+            }
+            File mapDir = new File(getDataFolder(), "map");
+            if (!mapDir.exists()) {
+                //noinspection ResultOfMethodCallIgnored
+                mapDir.mkdirs();
+            }
+
+            // Always build parchment base
+            cachedParchmentBase = buildParchmentBase();
+
+            // Optional overlay
+            File overlayFile = new File(mapDir, "base.png");
+            if (!overlayFile.exists()) {
+                cachedOverlayBase = null;
+                cachedOverlayMask = null;
+                getLogger().info("No map overlay found (map/base.png). Using built-in parchment only.");
+                return;
+            }
+
+            try {
+                BufferedImage img = ImageIO.read(overlayFile);
+                if (img == null) throw new IllegalStateException("ImageIO returned null (invalid image?)");
+
+                if (img.getWidth() != 128 || img.getHeight() != 128) {
+                    getLogger().warning("map/base.png must be exactly 128x128. Ignoring overlay.");
+                    cachedOverlayBase = null;
+                    cachedOverlayMask = null;
+                    return;
+                }
+
+                byte[] bytes = new byte[128 * 128];
+                boolean[] mask = new boolean[128 * 128];
+
+                for (int y = 0; y < 128; y++) {
+                    for (int x = 0; x < 128; x++) {
+                        int argb = img.getRGB(x, y);
+                        int a = (argb >> 24) & 0xFF;
+                        if (a <= 0) {
+                            // fully transparent
+                            mask[y * 128 + x] = false;
+                            bytes[y * 128 + x] = 0;
+                            continue;
+                        }
+
+                        Color c = new Color(argb, true);
+
+                        // If partially transparent, blend onto parchment first so it looks nicer.
+                        if (a < 255) {
+                            Color base = new Color(MapPalette.getColor(cachedParchmentBase[y * 128 + x]).getRGB());
+                            float af = a / 255.0f;
+                            int r = Math.round((c.getRed() * af) + (base.getRed() * (1f - af)));
+                            int g = Math.round((c.getGreen() * af) + (base.getGreen() * (1f - af)));
+                            int b = Math.round((c.getBlue() * af) + (base.getBlue() * (1f - af)));
+                            bytes[y * 128 + x] = MapPalette.matchColor(r, g, b);
+                            mask[y * 128 + x] = true;
+                        } else {
+                            bytes[y * 128 + x] = MapPalette.matchColor(c);
+                            mask[y * 128 + x] = true;
+                        }
+                    }
+                }
+
+                cachedOverlayBase = bytes;
+                cachedOverlayMask = mask;
+                getLogger().info("Loaded map overlay image: map/base.png");
+
+            } catch (Exception e) {
+                cachedOverlayBase = null;
+                cachedOverlayMask = null;
+                getLogger().warning("Failed to load map/base.png. Using built-in parchment only.");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Generates a tasteful parchment-style background (128x128) as map palette bytes.
+     * This is deterministic and cached on startup/reload.
+     */
+    private byte[] buildParchmentBase() {
+        byte[] out = new byte[128 * 128];
+
+        // Base warm parchment tone
+        int baseR = 226, baseG = 214, baseB = 186;
+
+        for (int y = 0; y < 128; y++) {
+            for (int x = 0; x < 128; x++) {
+                // Very subtle noise (deterministic)
+                int n = ((x * 31) ^ (y * 17)) & 3; // 0..3
+                int nr = baseR + (n - 1);
+                int ng = baseG + (n - 1);
+                int nb = baseB + (n - 1);
+
+                // Vignette (darken edges)
+                int dx = Math.min(x, 127 - x);
+                int dy = Math.min(y, 127 - y);
+                int d = Math.min(dx, dy); // 0 near edge
+
+                float edge = 1.0f;
+                if (d < 18) {
+                    // darken within 18px of edge
+                    edge = 0.78f + (d / 18.0f) * 0.22f;
+                }
+
+                int r = Math.round(nr * edge);
+                int g = Math.round(ng * edge);
+                int b = Math.round(nb * edge);
+
+                out[y * 128 + x] = MapPalette.matchColor(r, g, b);
+            }
+        }
+
+        return out;
     }
 
 }
