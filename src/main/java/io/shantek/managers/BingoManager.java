@@ -477,10 +477,10 @@ public class BingoManager {
                     // Disable the game
                     ultimateBingo.bingoStarted = false;
 
-                    if (ultimateBingo.bingoFunctions.countActivePlayers() > 1 || ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
-                        // All players get a win
+                    if (ultimateBingo.currentGameMode.equalsIgnoreCase("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+                        // Group/Teams: everyone gets a win (cooperative)
                         for (Player target : Bukkit.getOnlinePlayers()) {
-                            if (ultimateBingo.bingoFunctions.isActivePlayer(target) && !target.equals(player)) {
+                            if (ultimateBingo.bingoFunctions.isActivePlayer(target)) {
                                 ultimateBingo.getLeaderboard().addGameResult(
                                         target.getUniqueId(),
                                         cardSize,
@@ -493,7 +493,7 @@ public class BingoManager {
                         }
                     } else {
                         if (ultimateBingo.bingoFunctions.countActivePlayers() > 1 || ultimateBingo.countSoloGames) {
-                            // Update leaderboard: player gets a win
+                            // Competitive: the bingo player gets a win
                             ultimateBingo.getLeaderboard().addGameResult(
                                     player.getUniqueId(),
                                     cardSize,
@@ -503,7 +503,7 @@ public class BingoManager {
                                     true
                             );
 
-                            // Other active players get a non-win
+                            // Other active players get a loss
                             for (Player target : Bukkit.getOnlinePlayers()) {
                                 if (ultimateBingo.bingoFunctions.isActivePlayer(target) && !target.equals(player)) {
                                     ultimateBingo.getLeaderboard().addGameResult(
