@@ -45,6 +45,10 @@ public class HubRegionListener implements Listener {
         playersInRegion.clear();
     }
 
+    public boolean isTracked(UUID playerId) {
+        return playersInRegion.contains(playerId);
+    }
+
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         // Quick exit: only care about hub mode
