@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import java.io.File;
 import java.io.IOException;
@@ -60,6 +61,26 @@ public class BingoSignListener implements Listener {
                             event.setCancelled(true);
                         }
 
+                    }
+                }
+
+                // Team sign click handling - any player can click these
+                for (Map.Entry<String, Location> entry : plugin.bingoFunctions.teamSignLocations.entrySet()) {
+                    if (block.getLocation().equals(entry.getValue())) {
+                        event.setCancelled(true);
+                        String team = entry.getKey();
+                        plugin.bingoFunctions.setManualTeam(player.getUniqueId(), team);
+
+                        ChatColor teamColor = switch (team.toLowerCase()) {
+                            case "red" -> ChatColor.RED;
+                            case "blue" -> ChatColor.BLUE;
+                            case "yellow" -> ChatColor.YELLOW;
+                            default -> ChatColor.WHITE;
+                        };
+                        String teamName = team.substring(0, 1).toUpperCase() + team.substring(1);
+                        player.sendMessage(ChatColor.GREEN + "You have selected the " + teamColor + teamName + ChatColor.GREEN + " team!");
+                        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);
+                        break;
                     }
                 }
             }
@@ -154,6 +175,35 @@ public class BingoSignListener implements Listener {
                 }
             }
 
+        }
+    }
+
+    // Protect all bingo signs (settings signs, team signs, start button) from being broken by non-ops
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        Block block = event.getBlock();
+        Location blockLoc = block.getLocation();
+
+        // Check setting signs
+        for (Location signLoc : plugin.bingoFunctions.signLocations.values()) {
+            if (blockLoc.equals(signLoc)) {
+                if (!event.getPlayer().isOp()) {
+                    event.setCancelled(true);
+                    event.getPlayer().sendMessage(ChatColor.RED + "You cannot break bingo signs!");
+                }
+                return;
+            }
+        }
+
+        // Check team signs
+        for (Location signLoc : plugin.bingoFunctions.teamSignLocations.values()) {
+            if (blockLoc.equals(signLoc)) {
+                if (!event.getPlayer().isOp()) {
+                    event.setCancelled(true);
+                    event.getPlayer().sendMessage(ChatColor.RED + "You cannot break bingo signs!");
+                }
+                return;
+            }
         }
     }
 

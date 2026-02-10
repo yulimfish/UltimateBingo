@@ -40,6 +40,8 @@ public class BingoFunctions
     private final File configFile;
     private final FileConfiguration config;
     public final Map<String, Location> signLocations = new HashMap<>();
+    public final Map<String, Location> teamSignLocations = new HashMap<>();
+    private final Map<UUID, String> manualTeamAssignments = new HashMap<>();
     public Location startButtonLocation;
 
     //region Resetting the players
@@ -804,6 +806,19 @@ public class BingoFunctions
     private HashMap<UUID, String> playerTeamsMap = new HashMap<>();
 
     // Store a reference to all online players
+    // Manual team pre-assignment (from team signs)
+    public void setManualTeam(UUID playerId, String team) {
+        manualTeamAssignments.put(playerId, team.toLowerCase());
+    }
+
+    public String getManualTeam(UUID playerId) {
+        return manualTeamAssignments.get(playerId);
+    }
+
+    public void clearManualTeams() {
+        manualTeamAssignments.clear();
+    }
+
     public void assignTeams() {
         List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
         List<Player> redTeam = new ArrayList<>();
@@ -822,7 +837,29 @@ public class BingoFunctions
             }
 
             if (activePlayer) {
-                // Check the block below the player
+                // Priority 1: Check if player manually picked a team via team sign
+                String manualTeam = getManualTeam(player.getUniqueId());
+                if (manualTeam != null) {
+                    switch (manualTeam) {
+                        case "blue":
+                            blueTeam.add(player);
+                            playerTeamsMap.put(player.getUniqueId(), "blue");
+                            break;
+                        case "red":
+                            redTeam.add(player);
+                            playerTeamsMap.put(player.getUniqueId(), "red");
+                            break;
+                        case "yellow":
+                            yellowTeam.add(player);
+                            playerTeamsMap.put(player.getUniqueId(), "yellow");
+                            break;
+                        default:
+                            unassignedPlayers.add(player);
+                    }
+                    return; // Skip block check for this player
+                }
+
+                // Priority 2: Check the block below the player
                 Location locationBelow = player.getLocation().subtract(0, 1, 0);
                 Material blockStandingOn = locationBelow.getBlock().getType();
                 switch (blockStandingOn) {
@@ -845,6 +882,9 @@ public class BingoFunctions
         });
 
         distributeUnassignedPlayers(unassignedPlayers, redTeam, yellowTeam, blueTeam);
+
+        // Clear manual assignments after use
+        clearManualTeams();
 
     }
 

@@ -102,6 +102,17 @@ public class BingoCommand implements CommandExecutor {
                         ultimateBingo.inGameConfigManager.saveButtonLocation(targetLocation);
                         player.sendMessage(ChatColor.GREEN + "Start button set successfully!");
                         ultimateBingo.inGameConfigManager.loadSignLocations();
+                    } else if (settingName.equalsIgnoreCase("TeamRed") || settingName.equalsIgnoreCase("TeamBlue") || settingName.equalsIgnoreCase("TeamYellow")) {
+                        String team = settingName.replace("Team", "").toLowerCase();
+                        ultimateBingo.inGameConfigManager.saveTeamSignLocation(team, targetLocation);
+                        ChatColor teamColor = switch (team) {
+                            case "red" -> ChatColor.RED;
+                            case "blue" -> ChatColor.BLUE;
+                            case "yellow" -> ChatColor.YELLOW;
+                            default -> ChatColor.WHITE;
+                        };
+                        String teamName = team.substring(0, 1).toUpperCase() + team.substring(1);
+                        player.sendMessage(ChatColor.GREEN + "Team sign for " + teamColor + teamName + ChatColor.GREEN + " set successfully!");
                     } else {
                         player.sendMessage(ChatColor.RED + "Invalid setting name.");
                     }
@@ -126,6 +137,15 @@ public class BingoCommand implements CommandExecutor {
                 } else if (ultimateBingo.bingoFunctions.signLocations.containsKey(settingName)) {
                     ultimateBingo.bingoFunctions.removeSign(settingName);
                     player.sendMessage(ChatColor.GREEN + "The sign for " + settingName + " has been removed.");
+                } else if (settingName.equalsIgnoreCase("TeamRed") || settingName.equalsIgnoreCase("TeamBlue") || settingName.equalsIgnoreCase("TeamYellow")) {
+                    String team = settingName.replace("Team", "").toLowerCase();
+                    if (ultimateBingo.bingoFunctions.teamSignLocations.containsKey(team)) {
+                        ultimateBingo.inGameConfigManager.removeTeamSign(team);
+                        String teamName = team.substring(0, 1).toUpperCase() + team.substring(1);
+                        player.sendMessage(ChatColor.GREEN + "The team sign for " + teamName + " has been removed.");
+                    } else {
+                        player.sendMessage(ChatColor.RED + "No team sign set for that color.");
+                    }
                 } else {
                     player.sendMessage(ChatColor.RED + "The sign for " + settingName + " hasn't been set up.");
                 }
@@ -545,23 +565,26 @@ public class BingoCommand implements CommandExecutor {
         }
         ultimateBingo.bingoSpawnLocation = null;
 
-        // Schedule a delayed task to run after 2 seconds (40 ticks)
+        // Schedule a delayed task to run after 2 seconds (40 ticks) to reset players
         Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
             ultimateBingo.bingoFunctions.resetPlayers();
             ultimateBingo.bingoFunctions.despawnAllItems();
 
-            // Give them a new bingo card to check the results, only if there are results to see
-            if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams") || ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
-                ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
-            } else {
-                if (!bingoManager.getBingoGUIs().isEmpty()) {
-
+            // Give bingo card after an additional 2 seconds so players can settle in
+            Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
+                // Give them a new bingo card to check the results, only if there are results to see
+                if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams") || ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
                     ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
-                }
-            }
-            ultimateBingo.bingoButtonActive = true;
+                } else {
+                    if (!bingoManager.getBingoGUIs().isEmpty()) {
 
-        }, 40L);  // Delay specified in ticks (40 ticks = 2 seconds)
+                        ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
+                    }
+                }
+                ultimateBingo.bingoButtonActive = true;
+            }, 40L);  // +2 seconds for card
+
+        }, 40L);  // 2 seconds for reset
 
     }
 
@@ -626,26 +649,29 @@ public class BingoCommand implements CommandExecutor {
         }
 
 
-        // Schedule a delayed task to run after 2 seconds (40 ticks)
+        // Schedule a delayed task to run after 2 seconds (40 ticks) to reset players
         Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
             ultimateBingo.bingoFunctions.resetPlayers();
             ultimateBingo.bingoFunctions.despawnAllItems();
 
-            // Give them a new bingo card to check the results, only if there are results to see
-            if (ultimateBingo.currentGameMode.equalsIgnoreCase("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+            // Give bingo card after an additional 2 seconds so players can settle in
+            Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
+                // Give them a new bingo card to check the results, only if there are results to see
+                if (ultimateBingo.currentGameMode.equalsIgnoreCase("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
 
-                ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
+                    ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
 
-            } else if (!bingoManager.getBingoGUIs().isEmpty()) {
+                } else if (!bingoManager.getBingoGUIs().isEmpty()) {
 
-                ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
+                    ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
 
-            }
+                }
 
-            // Clear the previous spawn location
-            ultimateBingo.bingoSpawnLocation = null;
+                // Clear the previous spawn location
+                ultimateBingo.bingoSpawnLocation = null;
+            }, 40L);  // +2 seconds for card
 
-        }, 40L);  // Delay specified in ticks (40 ticks = 2 seconds)
+        }, 40L);  // 2 seconds for reset
     }
 
     //endregion
