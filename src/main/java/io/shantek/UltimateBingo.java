@@ -57,6 +57,7 @@ public final class UltimateBingo extends JavaPlugin {
     private SettingsManager settingsManager;
     public InGameConfigManager inGameConfigManager;
     public HubConfig hubConfig;
+    public io.shantek.listeners.HubRegionListener hubRegionListener;
 
     // Add Leaderboard field
     private Leaderboard leaderboard;
@@ -181,6 +182,8 @@ public final class UltimateBingo extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new SettingsListener(materialList, settingsManager, bingoGameGUIManager, this), this);
         Bukkit.getPluginManager().registerEvents(new BingoPlayerGUIListener(materialList, bingoPlayerGUIManager, this), this);
         Bukkit.getPluginManager().registerEvents(new BingoSignListener(this, inGameConfigManager), this);
+        hubRegionListener = new io.shantek.listeners.HubRegionListener(this);
+        Bukkit.getPluginManager().registerEvents(hubRegionListener, this);
     }
 
     public BingoManager getBingoManager() {

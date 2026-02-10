@@ -555,36 +555,54 @@ public class BingoCommand implements CommandExecutor {
 
         // If hub mode is active, teleport players back to hub spawn
         if (ultimateBingo.isHubModeActive() && ultimateBingo.hubSpawnLocation != null) {
+            // Track who was playing before we teleport them out of bingo world
+            List<Player> activeBingoPlayers = new ArrayList<>();
             for (Player p : players) {
                 if (ultimateBingo.bingoFunctions.isActivePlayer(p)) {
+                    activeBingoPlayers.add(p);
                     p.teleport(ultimateBingo.hubSpawnLocation);
                 }
             }
-        } else {
-            ultimateBingo.bingoFunctions.safeScatterPlayers(players, ultimateBingo.bingoSpawnLocation, 5);
-        }
-        ultimateBingo.bingoSpawnLocation = null;
 
-        // Schedule a delayed task to run after 2 seconds (40 ticks) to reset players
-        Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
-            ultimateBingo.bingoFunctions.resetPlayers();
+            // Despawn items in bingo world
             ultimateBingo.bingoFunctions.despawnAllItems();
 
-            // Give bingo card after an additional 2 seconds so players can settle in
+            // Give cards in hub after a delay (they have separate inventories)
             Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
-                // Give them a new bingo card to check the results, only if there are results to see
-                if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams") || ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
-                    ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
-                } else {
-                    if (!bingoManager.getBingoGUIs().isEmpty()) {
-
-                        ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
+                for (Player p : activeBingoPlayers) {
+                    if (p.isOnline()) {
+                        ultimateBingo.bingoFunctions.giveBingoCard(p);
+                        ultimateBingo.hubRegionListener.markPlayerInRegion(p.getUniqueId());
                     }
                 }
                 ultimateBingo.bingoButtonActive = true;
-            }, 40L);  // +2 seconds for card
+            }, 40L);
 
-        }, 40L);  // 2 seconds for reset
+        } else {
+            ultimateBingo.bingoFunctions.safeScatterPlayers(players, ultimateBingo.bingoSpawnLocation, 5);
+
+            // Schedule a delayed task to run after 2 seconds (40 ticks) to reset players
+            Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
+                ultimateBingo.bingoFunctions.resetPlayers();
+                ultimateBingo.bingoFunctions.despawnAllItems();
+
+                // Give bingo card after an additional 2 seconds so players can settle in
+                Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
+                    // Give them a new bingo card to check the results, only if there are results to see
+                    if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams") || ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
+                        ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
+                    } else {
+                        if (!bingoManager.getBingoGUIs().isEmpty()) {
+
+                            ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
+                        }
+                    }
+                    ultimateBingo.bingoButtonActive = true;
+                }, 40L);  // +2 seconds for card
+
+            }, 40L);  // 2 seconds for reset
+        }
+        ultimateBingo.bingoSpawnLocation = null;
 
     }
 
@@ -639,39 +657,49 @@ public class BingoCommand implements CommandExecutor {
 
         // If hub mode is active, teleport players back to hub spawn
         if (ultimateBingo.isHubModeActive() && ultimateBingo.hubSpawnLocation != null) {
+            List<Player> activeBingoPlayers = new ArrayList<>();
             for (Player p : players) {
                 if (ultimateBingo.bingoFunctions.isActivePlayer(p)) {
+                    activeBingoPlayers.add(p);
                     p.teleport(ultimateBingo.hubSpawnLocation);
                 }
             }
-        } else {
-            ultimateBingo.bingoFunctions.safeScatterPlayers(players, ultimateBingo.bingoSpawnLocation, 5);
-        }
 
-
-        // Schedule a delayed task to run after 2 seconds (40 ticks) to reset players
-        Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
-            ultimateBingo.bingoFunctions.resetPlayers();
             ultimateBingo.bingoFunctions.despawnAllItems();
 
-            // Give bingo card after an additional 2 seconds so players can settle in
             Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
-                // Give them a new bingo card to check the results, only if there are results to see
-                if (ultimateBingo.currentGameMode.equalsIgnoreCase("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
-
-                    ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
-
-                } else if (!bingoManager.getBingoGUIs().isEmpty()) {
-
-                    ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
-
+                for (Player p : activeBingoPlayers) {
+                    if (p.isOnline()) {
+                        ultimateBingo.bingoFunctions.giveBingoCard(p);
+                        ultimateBingo.hubRegionListener.markPlayerInRegion(p.getUniqueId());
+                    }
                 }
-
-                // Clear the previous spawn location
                 ultimateBingo.bingoSpawnLocation = null;
-            }, 40L);  // +2 seconds for card
+                ultimateBingo.bingoButtonActive = true;
+            }, 40L);
 
-        }, 40L);  // 2 seconds for reset
+        } else {
+            ultimateBingo.bingoFunctions.safeScatterPlayers(players, ultimateBingo.bingoSpawnLocation, 5);
+
+            // Schedule a delayed task to run after 2 seconds (40 ticks) to reset players
+            Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
+                ultimateBingo.bingoFunctions.resetPlayers();
+                ultimateBingo.bingoFunctions.despawnAllItems();
+
+                // Give bingo card after an additional 2 seconds so players can settle in
+                Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
+                    if (ultimateBingo.currentGameMode.equalsIgnoreCase("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+                        ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
+                    } else if (!bingoManager.getBingoGUIs().isEmpty()) {
+                        ultimateBingo.bingoFunctions.giveBingoCardToAllPlayers();
+                    }
+
+                    // Clear the previous spawn location
+                    ultimateBingo.bingoSpawnLocation = null;
+                }, 40L);  // +2 seconds for card
+
+            }, 40L);  // 2 seconds for reset
+        }
     }
 
     //endregion
