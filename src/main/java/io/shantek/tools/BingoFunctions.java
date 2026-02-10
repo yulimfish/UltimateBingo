@@ -1242,6 +1242,9 @@ public class BingoFunctions
                 break;
         }
 
+        // Persist the change so it survives server reboots
+        ultimateBingo.configFile.saveConfig();
+
     }
 
     public void updateLoadoutSign(String setting, String textToUpdate) {
