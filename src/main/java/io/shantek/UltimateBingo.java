@@ -121,6 +121,10 @@ public final class UltimateBingo extends JavaPlugin {
         // Initialize managers in the correct order
         settingsManager = new SettingsManager(this);
 
+        // Initialize config managers early (needed by BingoCommand and listeners)
+        inGameConfigManager = new InGameConfigManager(this);
+        hubConfig = new HubConfig(this);
+
         // Initialize BingoManager first without BingoCommand
         bingoManager = new BingoManager(this, null); // Temporarily set null for BingoCommand
 
@@ -139,8 +143,6 @@ public final class UltimateBingo extends JavaPlugin {
         cardTypes = new CardTypes(this);
         configFile = new ConfigFile(this);
         leaderboard = new Leaderboard(this);
-        inGameConfigManager = new InGameConfigManager(this);
-        hubConfig = new HubConfig(this);
 
         // Register commands
         getCommand("bingo").setExecutor(bingoCommand);
@@ -178,7 +180,6 @@ public final class UltimateBingo extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new BingoInventoryCloseListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BingoPlayerJoinListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BingoGUIListener(this), this);
-        SettingsManager settingsManager = new SettingsManager(this);
         Bukkit.getPluginManager().registerEvents(new SettingsListener(materialList, settingsManager, bingoGameGUIManager, this), this);
         Bukkit.getPluginManager().registerEvents(new BingoPlayerGUIListener(materialList, bingoPlayerGUIManager, this), this);
         Bukkit.getPluginManager().registerEvents(new BingoSignListener(this, inGameConfigManager), this);
