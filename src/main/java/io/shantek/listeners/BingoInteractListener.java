@@ -33,10 +33,7 @@ public class BingoInteractListener implements Listener {
         Player player = event.getPlayer();
         ItemStack itemInHand = event.getItem();
 
-        if (ultimateBingo.bingoFunctions.isActivePlayer(player)
-                || (ultimateBingo.isHubModeActive()
-                    && ultimateBingo.hubRegionListener != null
-                    && ultimateBingo.hubRegionListener.isTracked(player.getUniqueId()))) {
+        if (ultimateBingo.bingoFunctions.canInteractWithCard(player)) {
 
             if (ultimateBingo.playedSinceReboot) {
                 // Check if the player is holding the "Bingo card"
