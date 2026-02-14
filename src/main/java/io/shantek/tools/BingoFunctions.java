@@ -64,6 +64,9 @@ public class BingoFunctions
                 // Reset exhaustion to 0 (no exhaustion)
                 player.setExhaustion(0.0F);
 
+                // Extinguish the player
+                player.setFireTicks(0);
+
                 // Reset remaining potion effects
                 for (PotionEffect effect : player.getActivePotionEffects()) {
                     player.removePotionEffect(effect.getType());
@@ -95,6 +98,9 @@ public class BingoFunctions
 
         // Reset exhaustion to 0 (no exhaustion)
         player.setExhaustion(0.0F);
+
+        // Extinguish the player
+        player.setFireTicks(0);
 
         if (fullReset) {
             // Reset remaining potion effects
@@ -137,14 +143,29 @@ public class BingoFunctions
     }
 
     public void giveBingoCard(Player player) {
-        // Check if the player already has a bingo card map
-        if (ultimateBingo.bingoMapManager.hasBingoMap(player)) {
-            player.sendMessage(ChatColor.YELLOW + "You already have a Bingo Card.");
-            return;
-        }
+        // Remove any existing bingo card maps first
+        removeBingoMaps(player);
 
         // Give the player a map with their bingo card
         ultimateBingo.bingoMapManager.giveBingoMap(player);
+    }
+
+    /**
+     * Remove all bingo card maps from a player's inventory.
+     */
+    public void removeBingoMaps(Player player) {
+        for (int i = 0; i < player.getInventory().getSize(); i++) {
+            ItemStack item = player.getInventory().getItem(i);
+            if (item != null && item.getType() == Material.FILLED_MAP) {
+                ItemMeta meta = item.getItemMeta();
+                if (meta != null && meta.hasDisplayName() &&
+                        meta.getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
+                    player.getInventory().setItem(i, null);
+                }
+            }
+        }
+        // Also clean up the map manager's tracking
+        ultimateBingo.bingoMapManager.removePlayerMap(player);
     }
 
     private boolean hasBingoCard(PlayerInventory inventory) {
@@ -204,15 +225,23 @@ public class BingoFunctions
 
     // Reset the time and weather at the start of the game
     public void resetTimeAndWeather() {
-        for (World world : Bukkit.getWorlds()) {
-            world.setTime(0);  // Set time to 0 (6 AM)
-        }
-
-        // Clear weather
-        for (World world : Bukkit.getWorlds()) {
-            world.setStorm(false);  // Disable rain
-            world.setThundering(false);  // Disable thunder
-            world.setWeatherDuration(0);  // Set weather duration to 0
+        if (ultimateBingo.multiWorldServer && ultimateBingo.bingoWorld != null) {
+            // Multi-world: only affect the bingo world
+            World bingoWorld = Bukkit.getWorld(ultimateBingo.bingoWorld);
+            if (bingoWorld != null) {
+                bingoWorld.setTime(0);
+                bingoWorld.setStorm(false);
+                bingoWorld.setThundering(false);
+                bingoWorld.setWeatherDuration(0);
+            }
+        } else {
+            // Single world: affect all worlds
+            for (World world : Bukkit.getWorlds()) {
+                world.setTime(0);
+                world.setStorm(false);
+                world.setThundering(false);
+                world.setWeatherDuration(0);
+            }
         }
     }
 
@@ -368,20 +397,11 @@ public class BingoFunctions
     }
 
     private ItemStack createFireworkRocket() {
-        ItemStack firework = new ItemStack(Material.FIREWORK_ROCKET, 64); // Create a stack of 64 rockets
+        ItemStack firework = new ItemStack(Material.FIREWORK_ROCKET, 64);
         FireworkMeta fireworkMeta = (FireworkMeta) firework.getItemMeta();
 
         if (fireworkMeta != null) {
-            // Use reflection to ensure the effects list is initialized without adding effects
-            try {
-                java.lang.reflect.Field effectsField = fireworkMeta.getClass().getDeclaredField("effects");
-                effectsField.setAccessible(true);
-                effectsField.set(fireworkMeta, new ArrayList<FireworkEffect>());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // Set the flight duration to level 3
+            // Set the flight duration to level 3 (no effects needed for elytra boosting)
             fireworkMeta.setPower(3);
             firework.setItemMeta(fireworkMeta);
         }
@@ -695,6 +715,18 @@ public class BingoFunctions
 
         return isActivePlayer;
 
+    }
+
+    /**
+     * Check if a player can interact with bingo card GUIs.
+     * True if they're an active player in the bingo world, OR if they're
+     * reviewing a card in the hub after a game.
+     */
+    public boolean canInteractWithCard(Player player) {
+        if (isActivePlayer(player)) return true;
+        return ultimateBingo.isHubModeActive()
+                && ultimateBingo.hubRegionListener != null
+                && ultimateBingo.hubRegionListener.isTracked(player.getUniqueId());
     }
 
     public int countActivePlayers() {
