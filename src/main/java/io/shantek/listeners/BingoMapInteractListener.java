@@ -43,10 +43,7 @@ public class BingoMapInteractListener implements Listener {
         if (event.getAction() == Action.RIGHT_CLICK_AIR || 
             event.getAction() == Action.RIGHT_CLICK_BLOCK) {
             
-            if (!plugin.bingoFunctions.isActivePlayer(player)
-                    && !(plugin.isHubModeActive()
-                         && plugin.hubRegionListener != null
-                         && plugin.hubRegionListener.isTracked(player.getUniqueId()))) {
+            if (!plugin.bingoFunctions.canInteractWithCard(player)) {
                 return;
             }
             
