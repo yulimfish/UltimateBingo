@@ -36,6 +36,8 @@ public class EntityDamageListener implements Listener {
                         // Prevent the death by canceling the damage event
                         event.setCancelled(true);
 
+                        // Extinguish the player (fix for remaining on fire after respawn)
+                        player.setFireTicks(0);
 
                         boolean keepInventory = player.getWorld().getGameRuleValue(GameRule.KEEP_INVENTORY);
 
