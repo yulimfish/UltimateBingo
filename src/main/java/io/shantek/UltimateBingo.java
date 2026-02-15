@@ -112,6 +112,7 @@ public final class UltimateBingo extends JavaPlugin {
 
     @Override
     public void onEnable() {
+
         // Save the instance of the plugin
         instance = this;
 
@@ -120,6 +121,12 @@ public final class UltimateBingo extends JavaPlugin {
 
         // Initialize managers in the correct order
         settingsManager = new SettingsManager(this);
+
+        // ===============================
+        // FIX: BingoFunctions MUST exist
+        // before InGameConfigManager
+        // ===============================
+        bingoFunctions = new BingoFunctions(this);
 
         // Initialize config managers early (needed by BingoCommand and listeners)
         inGameConfigManager = new InGameConfigManager(this);
@@ -138,7 +145,6 @@ public final class UltimateBingo extends JavaPlugin {
         materialList = new MaterialList(this);
         bingoGameGUIManager = new BingoGameGUIManager(this);
         bingoPlayerGUIManager = new BingoPlayerGUIManager(this);
-        bingoFunctions = new BingoFunctions(this);
         bingoMapManager = new BingoMapManager(this);
         cardTypes = new CardTypes(this);
         configFile = new ConfigFile(this);
@@ -170,6 +176,7 @@ public final class UltimateBingo extends JavaPlugin {
         // Set signs to the correct values
         bingoFunctions.updateAllSigns();
     }
+
 
     private void registerEventListeners() {
         // Register each listener with the Bukkit plugin manager
