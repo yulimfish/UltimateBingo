@@ -236,10 +236,10 @@ public class BingoManager {
 
     public boolean checkHasBingoCard(Player player) {
         UUID playerId = player.getUniqueId();
-        if (ultimateBingo.gameMode.equalsIgnoreCase("group") || ultimateBingo.gameMode.equalsIgnoreCase("teams")) {
+        if (ultimateBingo.currentGameMode.equalsIgnoreCase("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
             return true;
         } else {
-            return bingoGUIs.containsKey(playerId);
+            return bingoGUIs != null && bingoGUIs.containsKey(playerId);
         }
     }
 
@@ -358,7 +358,9 @@ public class BingoManager {
 
         // Ensure we always return exactly TOTAL_ITEMS materials
         while (generatedMaterials.size() < TOTAL_ITEMS) {
-            List<Material> fallbackMaterials = materials.get(1);
+            List<Material> fallbackMaterials = new ArrayList<>(materials.get(1));
+            fallbackMaterials.removeAll(generatedMaterials);
+            if (fallbackMaterials.isEmpty()) break; // No more unique materials available
             Material randomMaterial = fallbackMaterials.get(random.nextInt(fallbackMaterials.size()));
             generatedMaterials.add(randomMaterial);
         }
@@ -392,6 +394,9 @@ public class BingoManager {
 
                 item.setItemMeta(meta);
 
+                // Update the player's map to reflect the completion
+                ultimateBingo.bingoMapManager.updatePlayerMap(player);
+
                 // Top up their rockets if using the correct loadout
                 ultimateBingo.bingoFunctions.topUpFirstFireworkRocketsStack(player);
 
@@ -412,9 +417,9 @@ public class BingoManager {
 
                         if (!target.equals(player)) { // Exclude the player who triggered the event
                             if (ultimateBingo.currentRevealCards) {
-                                if (ultimateBingo.gameMode.equalsIgnoreCase("group")) {
+                                if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
                                     target.sendMessage(ChatColor.GREEN + player.getName() + ChatColor.WHITE + " ticked off " + ChatColor.GREEN + removedUnderscore + ChatColor.WHITE + " from the group bingo card!");
-                                } else if (ultimateBingo.gameMode.equalsIgnoreCase("teams")) {
+                                } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
 
                                     if (ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("red")) {
 
@@ -474,10 +479,10 @@ public class BingoManager {
                     // Disable the game
                     ultimateBingo.bingoStarted = false;
 
-                    if (ultimateBingo.bingoFunctions.countActivePlayers() > 1 || ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
-                        // All players get a win
+                    if (ultimateBingo.currentGameMode.equalsIgnoreCase("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+                        // Group/Teams: everyone gets a win (cooperative)
                         for (Player target : Bukkit.getOnlinePlayers()) {
-                            if (ultimateBingo.bingoFunctions.isActivePlayer(target) && !target.equals(player)) {
+                            if (ultimateBingo.bingoFunctions.isActivePlayer(target)) {
                                 ultimateBingo.getLeaderboard().addGameResult(
                                         target.getUniqueId(),
                                         cardSize,
@@ -490,7 +495,7 @@ public class BingoManager {
                         }
                     } else {
                         if (ultimateBingo.bingoFunctions.countActivePlayers() > 1 || ultimateBingo.countSoloGames) {
-                            // Update leaderboard: player gets a win
+                            // Competitive: the bingo player gets a win
                             ultimateBingo.getLeaderboard().addGameResult(
                                     player.getUniqueId(),
                                     cardSize,
@@ -500,7 +505,7 @@ public class BingoManager {
                                     true
                             );
 
-                            // Other active players get a non-win
+                            // Other active players get a loss
                             for (Player target : Bukkit.getOnlinePlayers()) {
                                 if (ultimateBingo.bingoFunctions.isActivePlayer(target) && !target.equals(player)) {
                                     ultimateBingo.getLeaderboard().addGameResult(
@@ -516,7 +521,7 @@ public class BingoManager {
                         }
                     }
 
-                    if (ultimateBingo.gameMode.equalsIgnoreCase("group")) {
+                    if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
                         ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GOLD + player.getName() + ChatColor.GREEN + " collected the last item! Well done, team!");
                         for (Player target : Bukkit.getOnlinePlayers()) {
                             if (ultimateBingo.bingoFunctions.isActivePlayer(target)) {
@@ -526,7 +531,7 @@ public class BingoManager {
                             }
                         }
                     }
-                    else if (ultimateBingo.gameMode.equalsIgnoreCase("teams")) {
+                    else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
 
                         if (ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("red")) {
                             ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.RED + player.getName() + ChatColor.WHITE + " collected the last item! Well done, team " + ChatColor.RED + "RED" + ChatColor.WHITE + "!");
@@ -876,10 +881,15 @@ public class BingoManager {
             }
             playerBingoCards.put(playerId, newCard);
 
-            // If player has GUI open, update it
+            // Update the player's map
             Player player = Bukkit.getPlayer(playerId);
-            if (player != null && player.getOpenInventory().getTopInventory().equals(playerGUI)) {
-                player.updateInventory();
+            if (player != null) {
+                ultimateBingo.bingoMapManager.updatePlayerMap(player);
+                
+                // If player has GUI open, update it
+                if (player.getOpenInventory().getTopInventory().equals(playerGUI)) {
+                    player.updateInventory();
+                }
             }
         }
     }

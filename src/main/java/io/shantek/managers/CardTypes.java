@@ -1,14 +1,9 @@
 package io.shantek.managers;
 
 import io.shantek.UltimateBingo;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.UUID;
 
 public class CardTypes {
 
@@ -17,45 +12,43 @@ public class CardTypes {
         this.ultimateBingo = ultimateBingo;
     }
 
-    public boolean checkSmallCardBingo(Player player) {
-
-        UUID playerId = player.getUniqueId();
-
-        Inventory inv;
+    private Inventory getPlayerInventory(Player player) {
         if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
-            inv = ultimateBingo.groupInventory;
+            return ultimateBingo.groupInventory;
         } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
-
-            inv = ultimateBingo.bingoFunctions.getTeamInventory(player);
+            return ultimateBingo.bingoFunctions.getTeamInventory(player);
         } else {
-            inv = ultimateBingo.bingoManager.getBingoGUIs().get(playerId);
+            return ultimateBingo.bingoManager.getBingoGUIs().get(player.getUniqueId());
         }
+    }
 
-        if (ultimateBingo.currentFullCard) {
-            // Check for a full card bingo instead of individual lines
-        }
+    private boolean isCompleted(Inventory inv, int slot) {
+        if (inv == null) return false;
+        ItemStack item = inv.getItem(slot);
+        return item != null && item.getType() == ultimateBingo.tickedItemMaterial;
+    }
+
+    public boolean checkSmallCardBingo(Player player) {
+        Inventory inv = getPlayerInventory(player);
+        if (inv == null) return false;
+
+        // Check rows
         for (int i : new int[]{10, 19, 28}) {
-            if (inv.getItem(i).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+1).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+2).getType() == ultimateBingo.tickedItemMaterial) {
+            if (isCompleted(inv, i) && isCompleted(inv, i+1) && isCompleted(inv, i+2)) {
                 return true;
             }
         }
 
+        // Check columns
         for (int i : new int[]{10, 11, 12}) {
-            if (inv.getItem(i).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+9).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+18).getType() == ultimateBingo.tickedItemMaterial) {
+            if (isCompleted(inv, i) && isCompleted(inv, i+9) && isCompleted(inv, i+18)) {
                 return true;
             }
         }
 
-        if ((inv.getItem(10).getType() == ultimateBingo.tickedItemMaterial &&
-                inv.getItem(20).getType() == ultimateBingo.tickedItemMaterial &&
-                inv.getItem(30).getType() == ultimateBingo.tickedItemMaterial) ||
-                (inv.getItem(12).getType() == ultimateBingo.tickedItemMaterial &&
-                        inv.getItem(20).getType() == ultimateBingo.tickedItemMaterial &&
-                        inv.getItem(28).getType() == ultimateBingo.tickedItemMaterial)) {
+        // Check diagonals
+        if ((isCompleted(inv, 10) && isCompleted(inv, 20) && isCompleted(inv, 30)) ||
+                (isCompleted(inv, 12) && isCompleted(inv, 20) && isCompleted(inv, 28))) {
             return true;
         }
 
@@ -63,44 +56,27 @@ public class CardTypes {
     }
 
     public boolean checkMediumCardBingo(Player player) {
-
-        UUID playerId = player.getUniqueId();
-        Inventory inv;
-        if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
-            inv = ultimateBingo.groupInventory;
-        } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
-
-            inv = ultimateBingo.bingoFunctions.getTeamInventory(player);
-        } else {
-            inv = ultimateBingo.bingoManager.getBingoGUIs().get(playerId);
-        }
+        Inventory inv = getPlayerInventory(player);
+        if (inv == null) return false;
 
         for (int i : new int[]{10, 19, 28, 37}) {
-            if (inv.getItem(i).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+1).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+2).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+3).getType() == ultimateBingo.tickedItemMaterial) {
+            if (isCompleted(inv, i) && isCompleted(inv, i+1) &&
+                    isCompleted(inv, i+2) && isCompleted(inv, i+3)) {
                 return true;
             }
         }
 
         for (int i : new int[]{10, 11, 12, 13}) {
-            if (inv.getItem(i).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+9).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+18).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+27).getType() == ultimateBingo.tickedItemMaterial) {
+            if (isCompleted(inv, i) && isCompleted(inv, i+9) &&
+                    isCompleted(inv, i+18) && isCompleted(inv, i+27)) {
                 return true;
             }
         }
 
-        if ((inv.getItem(10).getType() == ultimateBingo.tickedItemMaterial &&
-                inv.getItem(20).getType() == ultimateBingo.tickedItemMaterial &&
-                inv.getItem(30).getType() == ultimateBingo.tickedItemMaterial &&
-                inv.getItem(40).getType() == ultimateBingo.tickedItemMaterial) ||
-                (inv.getItem(13).getType() == ultimateBingo.tickedItemMaterial &&
-                        inv.getItem(21).getType() == ultimateBingo.tickedItemMaterial &&
-                        inv.getItem(29).getType() == ultimateBingo.tickedItemMaterial &&
-                        inv.getItem(37).getType() == ultimateBingo.tickedItemMaterial)) {
+        if ((isCompleted(inv, 10) && isCompleted(inv, 20) &&
+                isCompleted(inv, 30) && isCompleted(inv, 40)) ||
+                (isCompleted(inv, 13) && isCompleted(inv, 21) &&
+                        isCompleted(inv, 29) && isCompleted(inv, 37))) {
             return true;
         }
 
@@ -108,49 +84,27 @@ public class CardTypes {
     }
 
     public boolean checkLargeCardBingo(Player player) {
-
-        UUID playerId = player.getUniqueId();
-        Inventory inv;
-        if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
-            inv = ultimateBingo.groupInventory;
-        } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
-
-            inv = ultimateBingo.bingoFunctions.getTeamInventory(player);
-        } else {
-            inv = ultimateBingo.bingoManager.getBingoGUIs().get(playerId);
-        }
+        Inventory inv = getPlayerInventory(player);
+        if (inv == null) return false;
 
         for (int i : new int[]{10, 19, 28, 37, 46}) {
-            if (inv.getItem(i).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+1).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+2).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+3).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+4).getType() == ultimateBingo.tickedItemMaterial) {
+            if (isCompleted(inv, i) && isCompleted(inv, i+1) && isCompleted(inv, i+2) &&
+                    isCompleted(inv, i+3) && isCompleted(inv, i+4)) {
                 return true;
             }
         }
 
         for (int i : new int[]{10, 11, 12, 13, 14}) {
-            if (inv.getItem(i).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+9).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+18).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+27).getType() == ultimateBingo.tickedItemMaterial &&
-                    inv.getItem(i+36).getType() == ultimateBingo.tickedItemMaterial) {
+            if (isCompleted(inv, i) && isCompleted(inv, i+9) && isCompleted(inv, i+18) &&
+                    isCompleted(inv, i+27) && isCompleted(inv, i+36)) {
                 return true;
             }
         }
 
-        if ((inv.getItem(10).getType() == ultimateBingo.tickedItemMaterial &&
-                inv.getItem(20).getType() == ultimateBingo.tickedItemMaterial &&
-                inv.getItem(30).getType() == ultimateBingo.tickedItemMaterial &&
-                inv.getItem(40).getType() == ultimateBingo.tickedItemMaterial &&
-                inv.getItem(50).getType() == ultimateBingo.tickedItemMaterial) ||
-
-                (inv.getItem(14).getType() == ultimateBingo.tickedItemMaterial &&
-                        inv.getItem(22).getType() == ultimateBingo.tickedItemMaterial &&
-                        inv.getItem(30).getType() == ultimateBingo.tickedItemMaterial &&
-                        inv.getItem(38).getType() == ultimateBingo.tickedItemMaterial &&
-                        inv.getItem(46).getType() == ultimateBingo.tickedItemMaterial)) {
+        if ((isCompleted(inv, 10) && isCompleted(inv, 20) && isCompleted(inv, 30) &&
+                isCompleted(inv, 40) && isCompleted(inv, 50)) ||
+                (isCompleted(inv, 14) && isCompleted(inv, 22) && isCompleted(inv, 30) &&
+                        isCompleted(inv, 38) && isCompleted(inv, 46))) {
             return true;
         }
 
@@ -158,30 +112,19 @@ public class CardTypes {
     }
 
     public boolean checkFullCard(Player player) {
-        UUID playerId = player.getUniqueId();
-        Inventory inv;
-        if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
-            inv = ultimateBingo.groupInventory;
-        } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
-
-            inv = ultimateBingo.bingoFunctions.getTeamInventory(player);
-
-        } else {
-            inv = ultimateBingo.bingoManager.getBingoGUIs().get(playerId);
-        }
+        Inventory inv = getPlayerInventory(player);
+        if (inv == null) return false;
 
         for (int i = 0; i < inv.getSize(); i++) {
-            // Skip the check for slot 17
+            // Skip the check for slot 17 (spyglass slot)
             if (i == 17) continue;
 
-            ItemStack item = inv.getItem(i); // Get the item in the current slot
-            // If the slot is not empty and not lime concrete, return false
+            ItemStack item = inv.getItem(i);
             if (item != null && item.getType() != ultimateBingo.tickedItemMaterial) {
                 return false;
             }
         }
 
-        // If all slots are either empty or lime concrete, return true
         return true;
     }
 }

@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import java.io.File;
 import java.io.IOException;
@@ -62,6 +63,26 @@ public class BingoSignListener implements Listener {
 
                     }
                 }
+
+                // Team sign click handling - any player can click these
+                for (Map.Entry<String, Location> entry : plugin.bingoFunctions.teamSignLocations.entrySet()) {
+                    if (block.getLocation().equals(entry.getValue())) {
+                        event.setCancelled(true);
+                        String team = entry.getKey();
+                        plugin.bingoFunctions.setManualTeam(player.getUniqueId(), team);
+
+                        ChatColor teamColor = switch (team.toLowerCase()) {
+                            case "red" -> ChatColor.RED;
+                            case "blue" -> ChatColor.BLUE;
+                            case "yellow" -> ChatColor.YELLOW;
+                            default -> ChatColor.WHITE;
+                        };
+                        String teamName = team.substring(0, 1).toUpperCase() + team.substring(1);
+                        player.sendMessage(ChatColor.GREEN + "You have selected the " + teamColor + teamName + ChatColor.GREEN + " team!");
+                        player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);
+                        break;
+                    }
+                }
             }
         }
 
@@ -81,24 +102,108 @@ public class BingoSignListener implements Listener {
                         clickedLocation.getBlockZ() == plugin.bingoFunctions.startButtonLocation.getBlockZ()) {
 
                     if (!plugin.bingoButtonActive) {
-                        player.sendMessage(ChatColor.RED + "A bingo game is already active!");
+                        // Game is already active
+                        if (plugin.isHubModeActive()) {
+                            // Hub mode: during active game, button press teleports clicker to bingo world
+                            // and prompts them to join
+                            event.setCancelled(true);
+                            org.bukkit.World bingoWorld = Bukkit.getWorld(plugin.bingoWorld);
+                            if (bingoWorld != null) {
+                                Location spawn = bingoWorld.getSpawnLocation();
+                                player.teleport(spawn);
+                                player.sendMessage(ChatColor.GREEN + "A bingo game is currently in progress. Type /bingo to join in!");
+                            }
+                        } else {
+                            player.sendMessage(ChatColor.RED + "A bingo game is already active!");
+                        }
                     } else {
                         event.setCancelled(true);
-                        plugin.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + "Game will start in 5 seconds...");
 
-                        plugin.bingoButtonActive = false;
+                        if (plugin.isHubModeActive()) {
+                            // === HUB MODE START ===
+                            java.util.List<Player> hubPlayers = io.shantek.tools.WorldGuardHelper.getPlayersInRegion(
+                                    plugin.hubWorld, plugin.hubRegion);
 
-                        // Set all the game config ready to play
-                        plugin.bingoGameGUIManager.setGameConfiguration();
+                            if (hubPlayers.isEmpty()) {
+                                player.sendMessage(ChatColor.RED + "No players found in the hub region!");
+                                return;
+                            }
 
-                        plugin.bingoSpawnLocation = player.getLocation();
+                            plugin.bingoButtonActive = false;
 
-                        // Start game with delay
-                        Bukkit.getScheduler().runTaskLater(plugin, () -> plugin.bingoCommand.startBingo(player), 100L);
+                            // Set game config
+                            plugin.bingoGameGUIManager.setGameConfiguration();
+
+                            // Use bingo world spawn as the spawn location
+                            org.bukkit.World bingoWorld = Bukkit.getWorld(plugin.bingoWorld);
+                            if (bingoWorld == null) {
+                                player.sendMessage(ChatColor.RED + "Bingo world not found!");
+                                plugin.bingoButtonActive = true;
+                                return;
+                            }
+
+                            Location bingoSpawn = bingoWorld.getSpawnLocation();
+                            plugin.bingoSpawnLocation = bingoSpawn;
+
+                            // Notify and teleport all hub players to bingo world
+                            for (Player hubPlayer : hubPlayers) {
+                                hubPlayer.sendMessage(ChatColor.GREEN + "Teleporting to the bingo world...");
+                                hubPlayer.teleport(bingoSpawn);
+                            }
+
+                            // Wait for hub-teleport-delay, then start the game
+                            long delayTicks = plugin.hubTeleportDelay * 20L;
+                            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                                plugin.bingoCommand.startBingo(player);
+                            }, delayTicks);
+
+                        } else {
+                            // === NORMAL MODE START ===
+                            plugin.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + "Game will start in 5 seconds...");
+
+                            plugin.bingoButtonActive = false;
+
+                            // Set all the game config ready to play
+                            plugin.bingoGameGUIManager.setGameConfiguration();
+
+                            plugin.bingoSpawnLocation = player.getLocation();
+
+                            // Start game with delay
+                            Bukkit.getScheduler().runTaskLater(plugin, () -> plugin.bingoCommand.startBingo(player), 100L);
+                        }
                     }
                 }
             }
 
+        }
+    }
+
+    // Protect all bingo signs (settings signs, team signs, start button) from being broken by non-ops
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        Block block = event.getBlock();
+        Location blockLoc = block.getLocation();
+
+        // Check setting signs
+        for (Location signLoc : plugin.bingoFunctions.signLocations.values()) {
+            if (blockLoc.equals(signLoc)) {
+                if (!event.getPlayer().isOp()) {
+                    event.setCancelled(true);
+                    event.getPlayer().sendMessage(ChatColor.RED + "You cannot break bingo signs!");
+                }
+                return;
+            }
+        }
+
+        // Check team signs
+        for (Location signLoc : plugin.bingoFunctions.teamSignLocations.values()) {
+            if (blockLoc.equals(signLoc)) {
+                if (!event.getPlayer().isOp()) {
+                    event.setCancelled(true);
+                    event.getPlayer().sendMessage(ChatColor.RED + "You cannot break bingo signs!");
+                }
+                return;
+            }
         }
     }
 

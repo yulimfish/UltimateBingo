@@ -90,7 +90,7 @@ public class BingoPlayerGUIManager {
             // Get all online players and populate the inventory
             for (Player player : Bukkit.getOnlinePlayers()) {
 
-                if (ultimateBingo.bingoFunctions.isActivePlayer(player)) {
+                if (ultimateBingo.bingoFunctions.canInteractWithCard(player)) {
 
                     if (ultimateBingo.bingoManager.bingoGUIs.containsKey(player.getUniqueId())) {  // Check if the player has a bingo card
                         ItemStack playerHead = new ItemStack(Material.PLAYER_HEAD);

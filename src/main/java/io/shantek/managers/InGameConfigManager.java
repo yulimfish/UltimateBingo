@@ -34,6 +34,7 @@ public class InGameConfigManager {
         config = YamlConfiguration.loadConfiguration(configFile);
         loadSignLocations();
         loadButtonLocation();
+        loadTeamSignLocations();
     }
 
     public void loadSignLocations() {
@@ -89,6 +90,33 @@ public class InGameConfigManager {
 
     public Location getStartButtonLocation() {
         return plugin.bingoFunctions.startButtonLocation;
+    }
+
+    // --- Team signs ---
+
+    public void saveTeamSignLocation(String team, Location location) {
+        plugin.bingoFunctions.teamSignLocations.put(team.toLowerCase(), location);
+        config.set("teamsigns." + team.toLowerCase(), serializeLocation(location));
+        saveConfig();
+    }
+
+    public void removeTeamSign(String team) {
+        plugin.bingoFunctions.teamSignLocations.remove(team.toLowerCase());
+        config.set("teamsigns." + team.toLowerCase(), null);
+        saveConfig();
+    }
+
+    public void loadTeamSignLocations() {
+        plugin.bingoFunctions.teamSignLocations.clear();
+        if (!config.contains("teamsigns")) return;
+        ConfigurationSection section = config.getConfigurationSection("teamsigns");
+        if (section == null) return;
+        for (String key : section.getKeys(false)) {
+            Location loc = parseLocation(config.getString("teamsigns." + key));
+            if (loc != null) {
+                plugin.bingoFunctions.teamSignLocations.put(key.toLowerCase(), loc);
+            }
+        }
     }
 
     private String serializeLocation(Location location) {

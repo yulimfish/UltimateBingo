@@ -33,7 +33,7 @@ public class BingoPlayerGUIListener implements Listener {
         if (!(e.getWhoClicked() instanceof Player)) return;
         Player player = (Player) e.getWhoClicked();
 
-        if (ultimateBingo.bingoFunctions.isActivePlayer(player)) {
+        if (ultimateBingo.bingoFunctions.canInteractWithCard(player)) {
 
             // Ensure the event was triggered in the Bingo configuration GUI
             if (e.getView().getTitle().contains("Welcome to Ultimate Bingo")) {
