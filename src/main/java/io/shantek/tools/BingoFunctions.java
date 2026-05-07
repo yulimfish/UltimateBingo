@@ -232,17 +232,39 @@ public class BingoFunctions
 
     // Reset the time and weather at the start of the game
     public void resetTimeAndWeather() {
-        for (World world : Bukkit.getWorlds()) {
-            world.setTime(0);  // Set time to 0 (6 AM)
-        }
+        if (ultimateBingo.multiWorldServer && ultimateBingo.bingoWorld != null) {
+            // Multi-world: only affect the bingo world
+            World bingoWorld = Bukkit.getWorld(ultimateBingo.bingoWorld);
+            if (bingoWorld != null) {
+                if (bingoWorld.getEnvironment() == World.Environment.NORMAL) {
+                    try {
+                        bingoWorld.setTime(0);
+                    } catch (IllegalArgumentException ignored) {
+                        // Custom NORMAL world without a clock, skip
+                    }
+                }
 
-        // Clear weather
-        for (World world : Bukkit.getWorlds()) {
-            world.setStorm(false);  // Disable rain
-            world.setThundering(false);  // Disable thunder
-            world.setWeatherDuration(0);  // Set weather duration to 0
+                bingoWorld.setStorm(false);
+                bingoWorld.setThundering(false);
+                bingoWorld.setWeatherDuration(0);
+            }
+        } else {
+            // Single world: affect all worlds
+            for (World world : Bukkit.getWorlds()) {
+                if (world.getEnvironment() == World.Environment.NORMAL) {
+                    try {
+                        world.setTime(0);
+                    } catch (IllegalArgumentException ignored) {
+                        // Custom NORMAL world without a clock, skip
+                    }
+                }
+                world.setStorm(false);
+                world.setThundering(false);
+                world.setWeatherDuration(0);
+            }
         }
     }
+
 
     // Despawn all items on the ground at the start/end of the game
     public void despawnAllItems() {
