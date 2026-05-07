@@ -86,172 +86,42 @@ public class BingoGameGUIManager {
     //region Toggle and update the GUI
 
     public void toggleGameMode(Player player) {
-        switch (ultimateBingo.gameMode.toLowerCase()) {
-            case "traditional":
-                ultimateBingo.gameMode = "speedrun";
-                break;
-            case "speedrun":
-                ultimateBingo.gameMode = "brewdash";
-                break;
-            case "brewdash":
-                ultimateBingo.gameMode = "group";
-                break;
-            case "group":
-                ultimateBingo.gameMode = "teams";
-                break;
-            case "teams":
-                ultimateBingo.gameMode = "shuffle";
-                break;
-            case "shuffle":
-                ultimateBingo.gameMode = "random";
-                break;
-            case "random":
-                ultimateBingo.gameMode = "traditional";
-                break;
-
-        }
-
+        ultimateBingo.bingoFunctions.toggleGameMode();
         updateGUI(player);
     }
 
     public void toggleDifficulty(Player player) {
-        // Cycle through difficulties. Assuming there are three fixed difficulties.
-        switch (ultimateBingo.difficulty.toLowerCase()) {
-            case "easy":
-                ultimateBingo.difficulty = "normal";
-                break;
-            case "normal":
-                ultimateBingo.difficulty = "hard";
-                break;
-            case "hard":
-                ultimateBingo.difficulty = "random";
-                break;
-            case "random":
-                ultimateBingo.difficulty = "easy";
-                break;
-        }
-
+        ultimateBingo.bingoFunctions.toggleDifficulty();
         updateGUI(player);
     }
 
     public void toggleCardSize(Player player) {
-        switch (ultimateBingo.cardSize.toLowerCase()) {
-            case "small":
-                ultimateBingo.cardSize = "medium";
-                break;
-            case "medium":
-                ultimateBingo.cardSize = "large";
-                break;
-            case "large":
-                ultimateBingo.cardSize = "random";
-                break;
-            case "random":
-                ultimateBingo.cardSize = "small";
-                break;
-        }
+        ultimateBingo.bingoFunctions.toggleCardSize();
         updateGUI(player);
     }
 
     public void toggleGameTime(Player player) {
-        switch (ultimateBingo.gameTime) {
-            case 0:
-                ultimateBingo.gameTime = 5;
-                break;
-            case 5:
-                ultimateBingo.gameTime = 10;
-                break;
-            case 10:
-                ultimateBingo.gameTime = 15;
-                break;
-            case 15:
-                ultimateBingo.gameTime = 20;
-                break;
-            case 20:
-                ultimateBingo.gameTime = 30;
-                break;
-            case 30:
-                ultimateBingo.gameTime = 40;
-                break;
-            case 40:
-                ultimateBingo.gameTime = 50;
-                break;
-            case 50:
-                ultimateBingo.gameTime = 60;
-                break;
-            case 60:
-                ultimateBingo.gameTime = 0;
-                break;
-        }
+        ultimateBingo.bingoFunctions.toggleTimeLimit();
         updateGUI(player);
     }
 
     public void toggleLoadout(Player player) {
-        switch (ultimateBingo.loadoutType) {
-            case 0:
-                ultimateBingo.loadoutType = 1;
-                break;
-            case 1:
-                ultimateBingo.loadoutType = 2;
-                break;
-            case 2:
-                ultimateBingo.loadoutType = 3;
-                break;
-            case 3:
-                ultimateBingo.loadoutType = 4;
-                break;
-            case 4:
-                ultimateBingo.loadoutType = 50;
-                break;
-            case 50:
-                ultimateBingo.loadoutType = 0;
-                break;
-
-        }
+        ultimateBingo.bingoFunctions.toggleLoadout();
         updateGUI(player);
     }
 
     public void toggleCardType(Player player) {
-        switch (ultimateBingo.uniqueCard) {
-            case "unique":
-                ultimateBingo.uniqueCard = "identical";
-                break;
-            case "identical":
-                ultimateBingo.uniqueCard = "random";
-                break;
-            case "random":
-                ultimateBingo.uniqueCard = "unique";
-                break;
-        }
+        ultimateBingo.bingoFunctions.toggleUnique();
         updateGUI(player);
     }
 
     public void toggleWinCondition(Player player) {
-        switch (ultimateBingo.fullCard) {
-            case "full card":
-                ultimateBingo.fullCard = "single row";
-                break;
-            case "single row":
-                ultimateBingo.fullCard = "random";
-                break;
-            case "random":
-                ultimateBingo.fullCard = "full card";
-                break;
-        }
+        ultimateBingo.bingoFunctions.toggleFullCard();
         updateGUI(player);
     }
 
     public void toggleRevealCards(Player player) {
-        switch (ultimateBingo.revealCards) {
-            case "enabled":
-                ultimateBingo.revealCards = "disabled";
-                break;
-            case "disabled":
-                ultimateBingo.revealCards = "random";
-                break;
-            case "random":
-                ultimateBingo.revealCards = "enabled";
-                break;
-        }
+        ultimateBingo.bingoFunctions.toggleReveal();
         updateGUI(player);
     }
 

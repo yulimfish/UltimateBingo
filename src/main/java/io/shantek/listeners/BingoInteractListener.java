@@ -2,6 +2,7 @@ package io.shantek.listeners;
 
 import io.shantek.UltimateBingo;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -19,7 +20,7 @@ public class BingoInteractListener implements Listener {
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         ItemStack item = event.getItemDrop().getItemStack();
-        if (item.getType() == ultimateBingo.bingoCardMaterial && item.getItemMeta().hasDisplayName() &&
+        if (item.getType() == Material.FILLED_MAP && item.getItemMeta().hasDisplayName() &&
                 item.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
                 event.setCancelled(true);
         }
@@ -32,11 +33,11 @@ public class BingoInteractListener implements Listener {
         Player player = event.getPlayer();
         ItemStack itemInHand = event.getItem();
 
-        if (ultimateBingo.bingoFunctions.isActivePlayer(player)) {
+        if (ultimateBingo.bingoFunctions.canInteractWithCard(player)) {
 
             if (ultimateBingo.playedSinceReboot) {
                 // Check if the player is holding the "Bingo card"
-                if (itemInHand != null && itemInHand.getType() == ultimateBingo.bingoCardMaterial && itemInHand.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
+                if (itemInHand != null && itemInHand.getType() == Material.FILLED_MAP && itemInHand.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
 
                     if (ultimateBingo.currentGameMode.equalsIgnoreCase("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
                         if (!ultimateBingo.bingoFunctions.isPlayerInGame(player.getUniqueId())) {

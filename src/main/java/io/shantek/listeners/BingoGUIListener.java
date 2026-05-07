@@ -17,8 +17,13 @@ public class BingoGUIListener implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent e) {
-        // Cancel all interactions in inventories with "Bingo" in the title
-        if (ChatColor.translateAlternateColorCodes('&', e.getView().getTitle()).contains("Bingo")) {
+        String title = ChatColor.translateAlternateColorCodes('&', e.getView().getTitle());
+
+        // Only match our specific bingo card inventories (contains bold "Bingo" which is our format)
+        // This avoids matching other plugins that might have "Bingo" in their inventory names
+        if (!title.contains(ChatColor.BOLD + "Bingo")) {
+            return;
+        }
 
             // Get the player who clicked in the inventory
             Player player = (Player) e.getWhoClicked();
@@ -35,7 +40,6 @@ public class BingoGUIListener implements Listener {
             }
             // Cancel all other events
             e.setCancelled(true);
-        }
     }
 }
 

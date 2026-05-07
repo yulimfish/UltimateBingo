@@ -59,6 +59,7 @@ public class BingoPlayerJoinListener implements Listener {
                 // A game hasn't been played since the reboot - Reset the player
                 player.setWalkSpeed(0.2f);
                 player.removePotionEffect(PotionEffectType.SLOW);
+                player.removePotionEffect(PotionEffectType.JUMP);
                 ultimateBingo.bingoFunctions.resetIndividualPlayer(player, true);
                 return;
 
@@ -67,6 +68,7 @@ public class BingoPlayerJoinListener implements Listener {
                 // A game has been played since reboot - see what we need to do with the player
                 player.setWalkSpeed(0.2f);
                 player.removePotionEffect(PotionEffectType.SLOW);
+                player.removePotionEffect(PotionEffectType.JUMP);
 
                 // If they joined and a game isn't active, reset their inventory in case they
                 // carried anything over from a prior game
@@ -83,18 +85,11 @@ public class BingoPlayerJoinListener implements Listener {
                 // prompt them on how to join the game. Delay the message by 5 seconds
                 player.setWalkSpeed(0.2f);
                 player.removePotionEffect(PotionEffectType.SLOW);
-
+                player.removePotionEffect(PotionEffectType.JUMP);
 
                 Bukkit.getScheduler().scheduleSyncDelayedTask(ultimateBingo, () -> {
                     player.sendMessage(ChatColor.GREEN + "A bingo game is currently in progress. Type /bingo to join in!");
                 }, 200);
-
-
-                if (ultimateBingo.bingoStarted && ultimateBingo.bingoCardActive) {
-                    player.setWalkSpeed(0.2f);
-                    player.removePotionEffect(PotionEffectType.SLOW);
-
-                }
 
                 if (ultimateBingo.bingoStarted && ultimateBingo.bingoManager.checkHasBingoCard(player) && (ultimateBingo.currentGameMode.equals("speedrun") || ultimateBingo.currentGameMode.equals("group"))) {
                     player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1, false, false, true));
