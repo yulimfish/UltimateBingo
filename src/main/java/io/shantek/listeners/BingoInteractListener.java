@@ -22,7 +22,11 @@ public class BingoInteractListener implements Listener {
         ItemStack item = event.getItemDrop().getItemStack();
         if (item.getType() == Material.FILLED_MAP && item.getItemMeta().hasDisplayName() &&
                 item.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
-                event.setCancelled(true);
+
+                // Only cancel this is the game is active
+                if (ultimateBingo.bingoStarted) {
+                    event.setCancelled(true);
+                }
         }
     }
 
