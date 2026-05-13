@@ -24,7 +24,7 @@ public class BingoInteractListener implements Listener {
                 item.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
 
                 // Only cancel this is the game is active
-                if (ultimateBingo.bingoStarted) {
+                if (ultimateBingo.bingoStarted && ultimateBingo.bingoFunctions.isPlayerInGame(event.getPlayer().getUniqueId())) {
                     event.setCancelled(true);
                 }
         }
