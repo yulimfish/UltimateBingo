@@ -40,6 +40,8 @@ public class BingoFunctions
     private final File configFile;
     private final FileConfiguration config;
     public final Map<String, Location> signLocations = new HashMap<>();
+    public final Map<String, Location> teamSignLocations = new HashMap<>();
+    private final Map<UUID, String> manualTeamAssignments = new HashMap<>();
     public Location startButtonLocation;
 
     //region Resetting the players
@@ -61,6 +63,9 @@ public class BingoFunctions
 
                 // Reset exhaustion to 0 (no exhaustion)
                 player.setExhaustion(0.0F);
+
+                // Extinguish the player
+                player.setFireTicks(0);
 
                 // Reset remaining potion effects
                 for (PotionEffect effect : player.getActivePotionEffects()) {
@@ -93,6 +98,9 @@ public class BingoFunctions
 
         // Reset exhaustion to 0 (no exhaustion)
         player.setExhaustion(0.0F);
+
+        // Extinguish the player
+        player.setFireTicks(0);
 
         if (fullReset) {
             // Reset remaining potion effects
@@ -135,49 +143,34 @@ public class BingoFunctions
     }
 
     public void giveBingoCard(Player player) {
-        PlayerInventory inventory = player.getInventory(); // Get the player's inventory
+        // Remove any existing bingo card maps first
+        removeBingoMaps(player);
 
-        // Check if the player already has a bingo card
-        if (hasBingoCard(inventory)) {
-            player.sendMessage(ChatColor.YELLOW + "You already have a Bingo Card.");
-            return; // Stop further execution if they already have one
-        }
+        // Give the player a map with their bingo card
+        ultimateBingo.bingoMapManager.giveBingoMap(player);
+    }
 
-        ItemStack bingoCard = new ItemStack(ultimateBingo.bingoCardMaterial);
-        ItemMeta itemMeta = bingoCard.getItemMeta();
-
-        if (itemMeta != null) {
-            // Set display name for the Bingo Card
-            itemMeta.setDisplayName(ChatColor.GOLD + "Bingo Card");
-
-            // Set lore with two lines
-            List<String> lore = new ArrayList<>();
-            lore.add(ChatColor.GRAY + "Card type: " + (ultimateBingo.currentUniqueCard ? ChatColor.BLUE + "Unique" : ChatColor.BLUE + "Identical") + "/" + ultimateBingo.currentDifficulty);
-            lore.add(ChatColor.GRAY + "Win condition: " + (ultimateBingo.currentFullCard ? ChatColor.BLUE + "Full card" : ChatColor.BLUE + "Single row"));
-
-            itemMeta.setLore(lore); // Apply the lore to the item meta
-            bingoCard.setItemMeta(itemMeta); // Apply the modified item meta back to the item stack
-
-            // Check if the inventory is full
-            if (inventory.firstEmpty() == -1) {
-                player.sendMessage(ChatColor.RED + "Unable to give you a bingo card, your inventory is full.");
-            } else {
-                // Check if slot 0 is empty
-                if (inventory.getItem(0) == null) {
-                    inventory.setItem(0, bingoCard); // Place the bingo card in slot 0
-                } else {
-                    inventory.addItem(bingoCard); // Automatically places in the first available slot
+    /**
+     * Remove all bingo card maps from a player's inventory.
+     */
+    public void removeBingoMaps(Player player) {
+        for (int i = 0; i < player.getInventory().getSize(); i++) {
+            ItemStack item = player.getInventory().getItem(i);
+            if (item != null && item.getType() == Material.FILLED_MAP) {
+                ItemMeta meta = item.getItemMeta();
+                if (meta != null && meta.hasDisplayName() &&
+                        meta.getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
+                    player.getInventory().setItem(i, null);
                 }
             }
-        } else {
-            // Log or handle the case where item meta couldn't be retrieved
-            Bukkit.getLogger().warning("Failed to retrieve item meta for Bingo Card.");
         }
+        // Also clean up the map manager's tracking
+        ultimateBingo.bingoMapManager.removePlayerMap(player);
     }
 
     private boolean hasBingoCard(PlayerInventory inventory) {
         for (ItemStack item : inventory.getContents()) {
-            if (item != null && item.getType() == ultimateBingo.bingoCardMaterial) {
+            if (item != null && item.getType() == Material.FILLED_MAP) {
                 ItemMeta meta = item.getItemMeta();
                 if (meta != null && meta.hasDisplayName() && meta.getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
                     return true; // Bingo card found
@@ -236,6 +229,7 @@ public class BingoFunctions
             // Multi-world: only affect the bingo world
             World bingoWorld = Bukkit.getWorld(ultimateBingo.bingoWorld);
             if (bingoWorld != null) {
+
                 if (bingoWorld.getEnvironment() == World.Environment.NORMAL) {
                     try {
                         bingoWorld.setTime(0);
@@ -251,6 +245,7 @@ public class BingoFunctions
         } else {
             // Single world: affect all worlds
             for (World world : Bukkit.getWorlds()) {
+
                 if (world.getEnvironment() == World.Environment.NORMAL) {
                     try {
                         world.setTime(0);
@@ -258,13 +253,13 @@ public class BingoFunctions
                         // Custom NORMAL world without a clock, skip
                     }
                 }
+
                 world.setStorm(false);
                 world.setThundering(false);
                 world.setWeatherDuration(0);
             }
         }
     }
-
 
     // Despawn all items on the ground at the start/end of the game
     public void despawnAllItems() {
@@ -418,20 +413,11 @@ public class BingoFunctions
     }
 
     private ItemStack createFireworkRocket() {
-        ItemStack firework = new ItemStack(Material.FIREWORK_ROCKET, 64); // Create a stack of 64 rockets
+        ItemStack firework = new ItemStack(Material.FIREWORK_ROCKET, 64);
         FireworkMeta fireworkMeta = (FireworkMeta) firework.getItemMeta();
 
         if (fireworkMeta != null) {
-            // Use reflection to ensure the effects list is initialized without adding effects
-            try {
-                java.lang.reflect.Field effectsField = fireworkMeta.getClass().getDeclaredField("effects");
-                effectsField.setAccessible(true);
-                effectsField.set(fireworkMeta, new ArrayList<FireworkEffect>());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            // Set the flight duration to level 3
+            // Set the flight duration to level 3 (no effects needed for elytra boosting)
             fireworkMeta.setPower(3);
             firework.setItemMeta(fireworkMeta);
         }
@@ -747,6 +733,18 @@ public class BingoFunctions
 
     }
 
+    /**
+     * Check if a player can interact with bingo card GUIs.
+     * True if they're an active player in the bingo world, OR if they're
+     * reviewing a card in the hub after a game.
+     */
+    public boolean canInteractWithCard(Player player) {
+        if (isActivePlayer(player)) return true;
+        return ultimateBingo.isHubModeActive()
+                && ultimateBingo.hubRegionListener != null
+                && ultimateBingo.hubRegionListener.isTracked(player.getUniqueId());
+    }
+
     public int countActivePlayers() {
         int playerCount = 0;
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -856,6 +854,19 @@ public class BingoFunctions
     private HashMap<UUID, String> playerTeamsMap = new HashMap<>();
 
     // Store a reference to all online players
+    // Manual team pre-assignment (from team signs)
+    public void setManualTeam(UUID playerId, String team) {
+        manualTeamAssignments.put(playerId, team.toLowerCase());
+    }
+
+    public String getManualTeam(UUID playerId) {
+        return manualTeamAssignments.get(playerId);
+    }
+
+    public void clearManualTeams() {
+        manualTeamAssignments.clear();
+    }
+
     public void assignTeams() {
         List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
         List<Player> redTeam = new ArrayList<>();
@@ -874,7 +885,29 @@ public class BingoFunctions
             }
 
             if (activePlayer) {
-                // Check the block below the player
+                // Priority 1: Check if player manually picked a team via team sign
+                String manualTeam = getManualTeam(player.getUniqueId());
+                if (manualTeam != null) {
+                    switch (manualTeam) {
+                        case "blue":
+                            blueTeam.add(player);
+                            playerTeamsMap.put(player.getUniqueId(), "blue");
+                            break;
+                        case "red":
+                            redTeam.add(player);
+                            playerTeamsMap.put(player.getUniqueId(), "red");
+                            break;
+                        case "yellow":
+                            yellowTeam.add(player);
+                            playerTeamsMap.put(player.getUniqueId(), "yellow");
+                            break;
+                        default:
+                            unassignedPlayers.add(player);
+                    }
+                    return; // Skip block check for this player
+                }
+
+                // Priority 2: Check the block below the player
                 Location locationBelow = player.getLocation().subtract(0, 1, 0);
                 Material blockStandingOn = locationBelow.getBlock().getType();
                 switch (blockStandingOn) {
@@ -897,6 +930,9 @@ public class BingoFunctions
         });
 
         distributeUnassignedPlayers(unassignedPlayers, redTeam, yellowTeam, blueTeam);
+
+        // Clear manual assignments after use
+        clearManualTeams();
 
     }
 
@@ -1253,6 +1289,9 @@ public class BingoFunctions
                 updateTimeLimitSign(setting, String.valueOf(toggleTimeLimit()));
                 break;
         }
+
+        // Persist the change so it survives server reboots
+        ultimateBingo.configFile.saveConfig();
 
     }
 
