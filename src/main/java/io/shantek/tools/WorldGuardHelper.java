@@ -73,9 +73,9 @@ public class WorldGuardHelper {
 
         } catch (ClassNotFoundException e) {
             // WorldGuard classes not found — WG not installed or wrong version
-            Bukkit.getLogger().log(Level.WARNING, "[UltimateBingo] WorldGuard classes not found. Is WorldGuard 7.x installed?");
+            Bukkit.getLogger().log(Level.WARNING, "[终极宾果] 未找到 WorldGuard 类。是否已安装 WorldGuard 7.x？");
         } catch (Exception e) {
-            Bukkit.getLogger().log(Level.WARNING, "[UltimateBingo] Error querying WorldGuard region", e);
+            Bukkit.getLogger().log(Level.WARNING, "[终极宾果] 查询 WorldGuard 区域时出错", e);
         }
 
         return result;

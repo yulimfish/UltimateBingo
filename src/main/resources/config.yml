@@ -1,30 +1,29 @@
-#  Print out any plugin errors to the console
+# 是否在控制台输出插件错误信息
 console-logs: true
 
-# Respawn players back to bingo spawn after a death
+# 玩家死亡后是否重生回宾果出生点
 respawn-teleport: true
 
-# Set this to true if you're using this on a SMP that has a dedicated bingo world
-# Also be sure to set the name of your dedicated bingo world to ensure players
-# aren't forced in to a new game or have their inventory cleared unless they are
-# in the dedicated bingo world
+# 若你在拥有专用宾果世界的 SMP 上使用，请设为 true
+# 同时请务必设置该专用宾果世界的名称，以确保只有在该世界中的玩家
+# 才会被强制加入新游戏或清空背包
 multi-world-server: false
 
-# This is only checked if the above setting is set to true. If you're using a plugin
-# like multiverse, create a world dedicated for your bingo game and set the name here
+# 仅当上方设置启用时才会检查。如果你使用 Multiverse 等多世界插件，
+# 请创建一个专用的宾果世界并在此填写世界名
 bingo-world: default
 
-# Should we add game results to the leaderboard where there is only 1 player in the game?
-# This could be a way for players to inflate results so is disabled by default
+# 是否将仅有一名玩家的游戏结果计入排行榜？
+# 这可能会成为玩家刷分的方式，因此默认禁用
 count-solo-games: false
 
-# Shuffle mode: How many minutes between card shuffles (default: 5)
-# Must be whole minute values, eg; 1, 5, 10 etc.
+# 洗牌模式：每次洗牌间隔多少分钟（默认：5）
+# 必须为整数分钟，例如：1、5、10 等
 shuffle-interval-minutes: 5
 
 ################################################
-# Current game configuration - Don't manually change this
-# Only adjust with the /bingo gui command in game
+# 当前游戏配置 - 请勿手动修改
+# 请在游戏中使用 /bingo gui 命令调整
 ################################################
 
 difficulty: easy

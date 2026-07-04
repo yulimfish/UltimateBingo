@@ -67,7 +67,7 @@ public class EntityDamageListener implements Listener {
 
                         // Broadcast message to all active players
                         ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(
-                                ChatColor.RED + player.getName() + " died and has been sent back to the Bingo spawn."
+                                ChatColor.RED + player.getName() + " 死亡并被传送回了宾果出生点。"
                         );
 
                     }

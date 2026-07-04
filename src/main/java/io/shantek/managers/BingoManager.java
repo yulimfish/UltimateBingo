@@ -69,12 +69,12 @@ public class BingoManager {
                 UUID playerId = player.getUniqueId();
 
                 // Store the string for the card type
-                String cardInfo = ultimateBingo.currentUniqueCard ? "unique" : "identical";
-                cardInfo += ultimateBingo.currentFullCard ? "/full card" : "/single row";
+                String cardInfo = ultimateBingo.currentUniqueCard ? "唯一" : "相同";
+                cardInfo += ultimateBingo.currentFullCard ? "/满卡" : "/单行";
                 cardInfo = "(" + cardInfo + ")";
 
                 // Create a new inventory for each player
-                Inventory bingoGUI = Bukkit.createInventory(null, 54, ChatColor.GREEN.toString() + ChatColor.BOLD + "Bingo" + " " + ChatColor.LIGHT_PURPLE + cardInfo);
+                Inventory bingoGUI = Bukkit.createInventory(null, 54, ChatColor.GREEN.toString() + ChatColor.BOLD + "宾果" + " " + ChatColor.LIGHT_PURPLE + cardInfo);
 
                 // Populate the card inventory with selected materials
                 for (int i = 0; i < slots.length && i < availableMaterials.size(); i++) {
@@ -132,11 +132,11 @@ public class BingoManager {
 
         // Store the string for the card type
         String cardInfo = "group";
-        cardInfo += ultimateBingo.currentFullCard ? "/full card" : "/single row";
+        cardInfo += ultimateBingo.currentFullCard ? "/满卡" : "/单行";
         cardInfo = "(" + cardInfo + ")";
 
         // Create a new inventory for each player
-        ultimateBingo.groupInventory = Bukkit.createInventory(null, 54, ChatColor.GREEN.toString() + ChatColor.BOLD + "Bingo" + " " + ChatColor.LIGHT_PURPLE + cardInfo);
+        ultimateBingo.groupInventory = Bukkit.createInventory(null, 54, ChatColor.GREEN.toString() + ChatColor.BOLD + "宾果" + " " + ChatColor.LIGHT_PURPLE + cardInfo);
 
         // Populate the card inventory with selected materials
         for (int i = 0; i < slots.length && i < availableMaterials.size(); i++) {
@@ -176,14 +176,14 @@ public class BingoManager {
 
 
         // Store the string for the card type
-        String cardInfo = ultimateBingo.currentUniqueCard ? "unique" : "identical";
-        cardInfo += ultimateBingo.currentFullCard ? "/full card" : "/single row";
+        String cardInfo = ultimateBingo.currentUniqueCard ? "唯一" : "相同";
+        cardInfo += ultimateBingo.currentFullCard ? "/满卡" : "/单行";
         cardInfo = "(" + cardInfo + ")";
 
         // Create a new inventory for each team
-        ultimateBingo.redTeamInventory = Bukkit.createInventory(null, 54, ChatColor.RED.toString() + ChatColor.BOLD + "Bingo" + " " + ChatColor.LIGHT_PURPLE + cardInfo);
-        ultimateBingo.blueTeamInventory = Bukkit.createInventory(null, 54, ChatColor.BLUE.toString() + ChatColor.BOLD + "Bingo" + " " + ChatColor.LIGHT_PURPLE + cardInfo);
-        ultimateBingo.yellowTeamInventory = Bukkit.createInventory(null, 54, ChatColor.GOLD.toString() + ChatColor.BOLD + "Bingo" + " " + ChatColor.LIGHT_PURPLE + cardInfo);
+        ultimateBingo.redTeamInventory = Bukkit.createInventory(null, 54, ChatColor.RED.toString() + ChatColor.BOLD + "宾果" + " " + ChatColor.LIGHT_PURPLE + cardInfo);
+        ultimateBingo.blueTeamInventory = Bukkit.createInventory(null, 54, ChatColor.BLUE.toString() + ChatColor.BOLD + "宾果" + " " + ChatColor.LIGHT_PURPLE + cardInfo);
+        ultimateBingo.yellowTeamInventory = Bukkit.createInventory(null, 54, ChatColor.GOLD.toString() + ChatColor.BOLD + "宾果" + " " + ChatColor.LIGHT_PURPLE + cardInfo);
 
         // Populate the red team card
         for (int i = 0; i < slots.length && i < availableMaterials.size(); i++) {
@@ -276,12 +276,12 @@ public class BingoManager {
                 UUID playerId = player.getUniqueId();
 
                 // Store the string for the card type
-                String cardInfo = ultimateBingo.currentUniqueCard ? "unique" : "identical";
-                cardInfo += ultimateBingo.currentFullCard ? "/full card" : "/single row";
+                String cardInfo = ultimateBingo.currentUniqueCard ? "唯一" : "相同";
+                cardInfo += ultimateBingo.currentFullCard ? "/满卡" : "/单行";
                 cardInfo = "(" + cardInfo + ")";
 
                 // Create a new inventory for each player
-                Inventory bingoGUI = Bukkit.createInventory(null, 54, ChatColor.GREEN.toString() + ChatColor.BOLD + "Bingo" + ChatColor.BLACK + " " + ChatColor.GOLD + cardInfo);
+                Inventory bingoGUI = Bukkit.createInventory(null, 54, ChatColor.GREEN.toString() + ChatColor.BOLD + "宾果" + ChatColor.BLACK + " " + ChatColor.GOLD + cardInfo);
 
                 // Shuffle the shared materials uniquely for each player
                 List<Material> playerMaterials = new ArrayList<>(sharedMaterials);
@@ -387,9 +387,9 @@ public class BingoManager {
                 ItemMeta meta = item.getItemMeta();
 
                 if (ultimateBingo.currentGameMode.equalsIgnoreCase("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
-                    meta.setDisplayName(ChatColor.GREEN + player.getName() + ": " + completedMaterial.name());
+                    meta.setDisplayName(ChatColor.GREEN + player.getName() + "：" + ultimateBingo.bingoFunctions.getMaterialName(completedMaterial));
                 } else {
-                    meta.setDisplayName(ChatColor.GREEN + "Completed: " + completedMaterial.name());
+                    meta.setDisplayName(ChatColor.GREEN + "已完成：" + ultimateBingo.bingoFunctions.getMaterialName(completedMaterial));
                 }
 
                 item.setItemMeta(meta);
@@ -400,8 +400,8 @@ public class BingoManager {
                 // Top up their rockets if using the correct loadout
                 ultimateBingo.bingoFunctions.topUpFirstFireworkRocketsStack(player);
 
-                String removedUnderscore = completedMaterial.name().toLowerCase().replace('_', ' ');
-                player.sendMessage(ChatColor.GREEN + "You ticked off " + ChatColor.GOLD + removedUnderscore + ChatColor.GREEN);
+                String removedUnderscore = ultimateBingo.bingoFunctions.getMaterialName(completedMaterial);
+                player.sendMessage(ChatColor.GREEN + "你勾选了 " + ChatColor.GOLD + removedUnderscore + ChatColor.GREEN);
 
                 if (ultimateBingo.currentGameMode.equals("speedrun") || ultimateBingo.currentGameMode.equals("group") || ultimateBingo.currentGameMode.equals("teams")) {
                     // Reset the player's stats
@@ -418,28 +418,28 @@ public class BingoManager {
                         if (!target.equals(player)) { // Exclude the player who triggered the event
                             if (ultimateBingo.currentRevealCards) {
                                 if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
-                                    target.sendMessage(ChatColor.GREEN + player.getName() + ChatColor.WHITE + " ticked off " + ChatColor.GREEN + removedUnderscore + ChatColor.WHITE + " from the group bingo card!");
+                                    target.sendMessage(ChatColor.GREEN + player.getName() + ChatColor.WHITE + " 勾选了 " + ChatColor.GREEN + removedUnderscore + ChatColor.WHITE + " 从团队宾果卡上勾选了 ");
                                 } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
 
                                     if (ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("red")) {
 
-                                        target.sendMessage(ChatColor.RED + player.getName() + ChatColor.WHITE + " ticked off " + ChatColor.RED + removedUnderscore);
+                                        target.sendMessage(ChatColor.RED + player.getName() + ChatColor.WHITE + " 勾选了 " + ChatColor.RED + removedUnderscore);
 
                                     } else if (ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("blue")) {
 
-                                        target.sendMessage(ChatColor.BLUE + player.getName() + ChatColor.WHITE + " ticked off " + ChatColor.BLUE + removedUnderscore);
+                                        target.sendMessage(ChatColor.BLUE + player.getName() + ChatColor.WHITE + " 勾选了 " + ChatColor.BLUE + removedUnderscore);
 
 
                                     } else if (ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("yellow")) {
 
-                                        target.sendMessage(ChatColor.YELLOW + player.getName() + ChatColor.WHITE + " ticked off " + ChatColor.YELLOW + removedUnderscore);
+                                        target.sendMessage(ChatColor.YELLOW + player.getName() + ChatColor.WHITE + " 勾选了 " + ChatColor.YELLOW + removedUnderscore);
                                     }
 
                                 } else {
-                                    target.sendMessage(ChatColor.GREEN + player.getName() + ChatColor.WHITE + " ticked off " + ChatColor.GREEN + removedUnderscore + ChatColor.WHITE + " from their bingo card!");
+                                    target.sendMessage(ChatColor.GREEN + player.getName() + ChatColor.WHITE + " 勾选了 " + ChatColor.GREEN + removedUnderscore + ChatColor.WHITE + " 从他的宾果卡上勾选了 ");
                                 }
                             } else {
-                                target.sendMessage(ChatColor.GREEN + player.getName() + ChatColor.WHITE + " ticked off a bingo item.");
+                                target.sendMessage(ChatColor.GREEN + player.getName() + ChatColor.WHITE + " 勾选了一个宾果物品。");
                             }
                         }
                     }
@@ -522,45 +522,45 @@ public class BingoManager {
                     }
 
                     if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GOLD + player.getName() + ChatColor.GREEN + " collected the last item! Well done, team!");
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GOLD + player.getName() + ChatColor.GREEN + " 收集了最后一件物品！干得好，团队！");
                         for (Player target : Bukkit.getOnlinePlayers()) {
                             if (ultimateBingo.bingoFunctions.isActivePlayer(target)) {
                                 target.playSound(target.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.0f);
-                                target.sendTitle("BINGO!",
-                                        ChatColor.GREEN.toString() + ChatColor.BOLD + "Woop woop!");
+                                target.sendTitle("宾果！",
+                                        ChatColor.GREEN.toString() + ChatColor.BOLD + "呜呼！");
                             }
                         }
                     }
                     else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
 
                         if (ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("red")) {
-                            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.RED + player.getName() + ChatColor.WHITE + " collected the last item! Well done, team " + ChatColor.RED + "RED" + ChatColor.WHITE + "!");
+                            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.RED + player.getName() + ChatColor.WHITE + " 收集了最后一件物品！" + ChatColor.RED + "红" + ChatColor.WHITE + "！");
 
                         } else if (ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("yellow")) {
-                            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + player.getName() + ChatColor.WHITE + " collected the last item! Well done, team " + ChatColor.YELLOW + "YELLOW" + ChatColor.WHITE + "!");
+                            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + player.getName() + ChatColor.WHITE + " 收集了最后一件物品！" + ChatColor.YELLOW + "黄" + ChatColor.WHITE + "！");
 
                         } else if (ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("blue")) {
-                            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.BLUE + player.getName() + ChatColor.WHITE + " collected the last item! Well done, team " + ChatColor.BLUE + "BLUE" + ChatColor.WHITE + "!");
+                            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.BLUE + player.getName() + ChatColor.WHITE + " 收集了最后一件物品！" + ChatColor.BLUE + "蓝" + ChatColor.WHITE + "！");
 
                         } else {
-                            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GOLD + player.getName() + ChatColor.GREEN + " collected the last item! Well done, team!");
+                            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GOLD + player.getName() + ChatColor.GREEN + " 收集了最后一件物品！干得好，团队！");
 
                         }
 
                         for (Player target : Bukkit.getOnlinePlayers()) {
                             if (ultimateBingo.bingoFunctions.isActivePlayer(target)) {
                                 target.playSound(target.getLocation(), Sound.ENTITY_GHAST_SCREAM, 1.0f, 1.0f);
-                                target.sendTitle(ultimateBingo.bingoFunctions.getTeam(player).toUpperCase() + " got BINGO!",
-                                        ChatColor.GREEN.toString() + ChatColor.BOLD + "Woop woop!");
+                                target.sendTitle(ultimateBingo.bingoFunctions.getTeam(player).toUpperCase() + " 宾果了！",
+                                        ChatColor.GREEN.toString() + ChatColor.BOLD + "呜呼！");
                             }
                         }
                     } else {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GOLD + player.getName() + ChatColor.GREEN + " got BINGO! Nice work!");
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GOLD + player.getName() + ChatColor.GREEN + " 宾果了！干得漂亮！");
                         for (Player target : Bukkit.getOnlinePlayers()) {
                             if (ultimateBingo.bingoFunctions.isActivePlayer(target)) {
                                 target.playSound(target.getLocation(), Sound.ENTITY_ENDERMAN_SCREAM, 1.0f, 1.0f);
-                                target.sendTitle(ChatColor.GOLD + player.getName() + ChatColor.GREEN + " got BINGO!",
-                                        ChatColor.GREEN.toString() + ChatColor.BOLD + "Woop woop!");
+                                target.sendTitle(ChatColor.GOLD + player.getName() + ChatColor.GREEN + " 宾果了！",
+                                        ChatColor.GREEN.toString() + ChatColor.BOLD + "呜呼！");
                             }
                         }
                     }
@@ -637,12 +637,12 @@ public class BingoManager {
             UUID playerId = player.getUniqueId();
             // Check if the player already has a Bingo card
             if (bingoGUIs.containsKey(playerId)) {
-                player.sendMessage(ChatColor.YELLOW + "You already have a Bingo card.");
+                player.sendMessage(ChatColor.YELLOW + "你已经拥有一张宾果卡片。");
                 return;
             }
 
             if (playerBingoCards.isEmpty()) {
-                player.sendMessage(ChatColor.RED + "No Bingo cards are available to clone. Please wait for the next round.");
+                player.sendMessage(ChatColor.RED + "没有可复制的宾果卡片。请等待下一轮。");
                 return;
             }
 
@@ -658,7 +658,7 @@ public class BingoManager {
             }
 
             if (idOfLeastTickedCard == null) {
-                player.sendMessage(ChatColor.RED + "No suitable Bingo card found.");
+                player.sendMessage(ChatColor.RED + "未找到合适的宾果卡片。");
                 return;
             }
 
@@ -677,25 +677,25 @@ public class BingoManager {
 
             if (ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("red")) {
 
-                ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.RED + player.getName() + ChatColor.GREEN + " has just joined the " + ChatColor.RED + " RED " + ChatColor.GREEN + "team!");
+                ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.RED + player.getName() + ChatColor.GREEN + " 加入了 " + ChatColor.RED + " 红" + ChatColor.GREEN + "team！");
 
             } else if (ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("blue")) {
 
-                ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.BLUE + player.getName() + ChatColor.GREEN + " has just joined the " + ChatColor.BLUE + " BLUE " + ChatColor.GREEN + "team!");
+                ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.BLUE + player.getName() + ChatColor.GREEN + " 加入了 " + ChatColor.BLUE + " 蓝" + ChatColor.GREEN + "team！");
 
 
             } else if (ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("yellow")) {
 
-                ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + player.getName() + ChatColor.GREEN + " has just joined the " + ChatColor.YELLOW + " YELLOW " + ChatColor.GREEN + "team!");
+                ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + player.getName() + ChatColor.GREEN + " 加入了 " + ChatColor.YELLOW + " 黄" + ChatColor.GREEN + "team！");
 
             }
 
 
         }
         if (!ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
-            player.sendMessage(ChatColor.GREEN + "You joined the bingo game. Good luck!");
+            player.sendMessage(ChatColor.GREEN + "你已加入宾果游戏。祝你好运！");
 
-            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GOLD + player.getName() + ChatColor.GREEN + " has just joined bingo!");
+            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GOLD + player.getName() + ChatColor.GREEN + " 刚刚加入了宾果！");
 
         }
 
@@ -741,7 +741,7 @@ public class BingoManager {
     private void performShuffle() {
         // Countdown: 3, 2, 1
         Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
-            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + "Cards shuffling in " + ChatColor.RED + "3" + ChatColor.YELLOW + "...");
+            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + "卡片将在 " + ChatColor.RED + "3" + ChatColor.YELLOW + "……");
             Bukkit.getServer().getOnlinePlayers().forEach(player -> {
                 if (ultimateBingo.bingoFunctions.isActivePlayer(player)) {
                     player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);
@@ -750,7 +750,7 @@ public class BingoManager {
         }, 0L);
 
         Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
-            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + "Cards shuffling in " + ChatColor.RED + "2" + ChatColor.YELLOW + "...");
+            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + "卡片将在 " + ChatColor.RED + "2" + ChatColor.YELLOW + "……");
             Bukkit.getServer().getOnlinePlayers().forEach(player -> {
                 if (ultimateBingo.bingoFunctions.isActivePlayer(player)) {
                     player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.2f);
@@ -759,7 +759,7 @@ public class BingoManager {
         }, 20L);
 
         Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
-            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + "Cards shuffling in " + ChatColor.RED + "1" + ChatColor.YELLOW + "...");
+            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + "卡片将在 " + ChatColor.RED + "1" + ChatColor.YELLOW + "……");
             Bukkit.getServer().getOnlinePlayers().forEach(player -> {
                 if (ultimateBingo.bingoFunctions.isActivePlayer(player)) {
                     player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.5f);
@@ -769,7 +769,7 @@ public class BingoManager {
 
         Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
             shufflePlayerCards();
-            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "" + ChatColor.BOLD + "SHUFFLE!" + ChatColor.RESET + ChatColor.GREEN + " Cards have been shuffled!");
+            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "" + ChatColor.BOLD + "洗牌！" + ChatColor.RESET + ChatColor.GREEN + " 卡片已重新洗牌！");
             Bukkit.getServer().getOnlinePlayers().forEach(player -> {
                 if (ultimateBingo.bingoFunctions.isActivePlayer(player)) {
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);

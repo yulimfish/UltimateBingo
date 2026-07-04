@@ -157,9 +157,9 @@ public final class UltimateBingo extends JavaPlugin {
         // Check if PlaceholderAPI is installed and register placeholders
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             new BingoPlaceholderExpansion(this).register();
-            getLogger().info("PlaceholderAPI detected, registering placeholders.");
+            getLogger().info("检测到 PlaceholderAPI，正在注册占位符。");
         } else {
-            getLogger().info("PlaceholderAPI not found, skipping placeholder registration.");
+            getLogger().info("未找到 PlaceholderAPI，跳过占位符注册。");
         }
 
         registerEventListeners();
@@ -299,16 +299,16 @@ public final class UltimateBingo extends JavaPlugin {
             if (!overlayFile.exists()) {
                 cachedOverlayBase = null;
                 cachedOverlayMask = null;
-                getLogger().info("No map overlay found (map/base.png). Using built-in parchment only.");
+                getLogger().info("未找到地图覆盖层 (map/base.png)。将仅使用内置羊皮纸背景。");
                 return;
             }
 
             try {
                 BufferedImage img = ImageIO.read(overlayFile);
-                if (img == null) throw new IllegalStateException("ImageIO returned null (invalid image?)");
+                if (img == null) throw new IllegalStateException("ImageIO 返回 null（图片无效？）");
 
                 if (img.getWidth() != 128 || img.getHeight() != 128) {
-                    getLogger().warning("map/base.png must be exactly 128x128. Ignoring overlay.");
+                    getLogger().warning("map/base.png 必须恰好为 128x128。已忽略覆盖层。");
                     cachedOverlayBase = null;
                     cachedOverlayMask = null;
                     return;
@@ -348,12 +348,12 @@ public final class UltimateBingo extends JavaPlugin {
 
                 cachedOverlayBase = bytes;
                 cachedOverlayMask = mask;
-                getLogger().info("Loaded map overlay image: map/base.png");
+                getLogger().info("已加载地图覆盖层图片：map/base.png");
 
             } catch (Exception e) {
                 cachedOverlayBase = null;
                 cachedOverlayMask = null;
-                getLogger().warning("Failed to load map/base.png. Using built-in parchment only.");
+                getLogger().warning("加载 map/base.png 失败。将仅使用内置羊皮纸背景。");
                 e.printStackTrace();
             }
         }

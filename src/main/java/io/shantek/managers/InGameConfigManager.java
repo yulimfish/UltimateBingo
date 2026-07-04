@@ -28,7 +28,7 @@ public class InGameConfigManager {
             try {
                 configFile.createNewFile();
             } catch (IOException e) {
-                plugin.getLogger().warning("Could not create ingameconfig.yml!");
+                plugin.getLogger().warning("无法创建 ingameconfig.yml！");
             }
         }
         config = YamlConfiguration.loadConfiguration(configFile);
@@ -135,7 +135,7 @@ public class InGameConfigManager {
         try {
             config.save(configFile);
         } catch (IOException e) {
-            plugin.getLogger().warning("Could not save ingameconfig.yml!");
+            plugin.getLogger().warning("无法保存 ingameconfig.yml！");
         }
     }
 }

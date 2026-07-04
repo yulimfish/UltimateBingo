@@ -32,7 +32,7 @@ public class BingoPlayerJoinListener implements Listener {
                 if (!ultimateBingo.bingoStarted || !ultimateBingo.bingoFunctions.isPlayerInGame(player.getUniqueId())) {
                     // Reset the player and their inventory
                     ultimateBingo.bingoFunctions.resetIndividualPlayer(player, true);
-                    player.sendMessage("You aren't in an active bingo game. Your inventory has been reset.");
+                    player.sendMessage("你不在进行中的宾果游戏中。你的背包已被重置。");
                 }
             }
         }
@@ -49,7 +49,7 @@ public class BingoPlayerJoinListener implements Listener {
 
             if (!ultimateBingo.bingoFunctions.isPlayerInGame(player.getUniqueId())) {
                 Bukkit.getScheduler().scheduleSyncDelayedTask(ultimateBingo, () -> {
-                    player.sendMessage(ChatColor.GREEN + "A bingo game is currently in progress. To join in, head to the bingo world and type /bingo");
+                    player.sendMessage(ChatColor.GREEN + "宾果游戏正在进行中。前往宾果世界并输入 /bingo 即可加入");
                 }, 200);
             }
         }
@@ -88,7 +88,7 @@ public class BingoPlayerJoinListener implements Listener {
                 player.removePotionEffect(PotionEffectType.JUMP);
 
                 Bukkit.getScheduler().scheduleSyncDelayedTask(ultimateBingo, () -> {
-                    player.sendMessage(ChatColor.GREEN + "A bingo game is currently in progress. Type /bingo to join in!");
+                    player.sendMessage(ChatColor.GREEN + "宾果游戏正在进行中。输入 /bingo 加入！");
                 }, 200);
 
                 if (ultimateBingo.bingoStarted && ultimateBingo.bingoManager.checkHasBingoCard(player) && (ultimateBingo.currentGameMode.equals("speedrun") || ultimateBingo.currentGameMode.equals("group"))) {

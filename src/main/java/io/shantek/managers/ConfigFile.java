@@ -25,19 +25,19 @@ public class ConfigFile {
     public void checkforDataFolder() {
         if (!ultimateBingo.getDataFolder().exists()) {
             if (ultimateBingo.getDataFolder().mkdir()) {
-                ultimateBingo.getLogger().info("Data folder created successfully.");
+                ultimateBingo.getLogger().info("数据文件夹创建成功。");
             } else {
-                ultimateBingo.getLogger().warning("Failed to create data folder.");
+                ultimateBingo.getLogger().warning("创建数据文件夹失败。");
             }
         }
     }
 
     public void reloadConfigFile() {
         try {
-            ultimateBingo.getLogger().info("Reloading config file.");
+            ultimateBingo.getLogger().info("正在重载配置文件。");
             File configFile = new File(ultimateBingo.getDataFolder(), "config.yml");
             if (!configFile.exists()) {
-                ultimateBingo.getLogger().info("Config file not found. Creating a new one...");
+                ultimateBingo.getLogger().info("未找到配置文件。正在创建新文件……");
                 saveDefaultConfig("config.yml", configFile);
             }
 
@@ -67,7 +67,7 @@ public class ConfigFile {
             ultimateBingo.shuffleIntervalMinutes = getInt(config, "shuffle-interval-minutes", 5);
 
         } catch (Exception e) {
-            ultimateBingo.getLogger().log(Level.SEVERE, "An error occurred while reloading the config file", e);
+            ultimateBingo.getLogger().log(Level.SEVERE, "重载配置文件时发生错误", e);
         }
     }
 
@@ -99,7 +99,7 @@ public class ConfigFile {
             if (resourceStream != null) {
                 Files.copy(resourceStream, destination.toPath(), StandardCopyOption.REPLACE_EXISTING);
             } else {
-                throw new IOException("Resource stream for default config is null");
+                throw new IOException("默认配置资源流为 null");
             }
         }
     }
@@ -156,7 +156,7 @@ public class ConfigFile {
 
             config.save(configFile);
         } catch (IOException e) {
-            ultimateBingo.getLogger().log(Level.SEVERE, "An error occurred while saving the config file", e);
+            ultimateBingo.getLogger().log(Level.SEVERE, "保存配置文件时发生错误", e);
         }
     }
 

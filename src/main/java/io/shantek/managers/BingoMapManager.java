@@ -93,11 +93,11 @@ public class BingoMapManager {
         
         if (meta != null) {
             meta.setMapView(mapView);
-            meta.setDisplayName(org.bukkit.ChatColor.GOLD + "Bingo Card");
+            meta.setDisplayName(org.bukkit.ChatColor.GOLD + "宾果卡片");
             
             List<String> lore = new java.util.ArrayList<>();
-            lore.add(org.bukkit.ChatColor.GRAY + "Right-click to open card GUI");
-            lore.add(org.bukkit.ChatColor.GRAY + "Hold to view live card");
+            lore.add(org.bukkit.ChatColor.GRAY + "右键打开卡片界面");
+            lore.add(org.bukkit.ChatColor.GRAY + "手持以查看实时卡片");
             meta.setLore(lore);
             
             mapItem.setItemMeta(meta);
@@ -209,7 +209,7 @@ public class BingoMapManager {
             if (item != null && item.getType() == Material.FILLED_MAP) {
                 MapMeta meta = (MapMeta) item.getItemMeta();
                 if (meta != null && meta.hasDisplayName() && 
-                    meta.getDisplayName().equals(org.bukkit.ChatColor.GOLD + "Bingo Card")) {
+                    meta.getDisplayName().equals(org.bukkit.ChatColor.GOLD + "宾果卡片")) {
                     return true;
                 }
             }
@@ -222,9 +222,9 @@ public class BingoMapManager {
      */
     public String getGameModeText() {
         if (plugin.currentFullCard) {
-            return "Full Card";
+            return "满卡";
         } else {
-            return "Single Row";
+            return "单行";
         }
     }
     
@@ -238,7 +238,7 @@ public class BingoMapManager {
             if (item != null && item.getType() == Material.COMPASS) {
                 MapMeta meta = (MapMeta) item.getItemMeta();
                 if (meta != null && meta.hasDisplayName() && 
-                    meta.getDisplayName().contains("Bingo Card")) {
+                    meta.getDisplayName().contains("宾果卡片")) {
                     player.getInventory().setItem(i, null);
                     break;
                 }

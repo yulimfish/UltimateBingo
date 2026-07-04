@@ -19,9 +19,9 @@ public class BingoGUIListener implements Listener {
     public void onInventoryClick(InventoryClickEvent e) {
         String title = ChatColor.translateAlternateColorCodes('&', e.getView().getTitle());
 
-        // Only match our specific bingo card inventories (contains bold "Bingo" which is our format)
-        // This avoids matching other plugins that might have "Bingo" in their inventory names
-        if (!title.contains(ChatColor.BOLD + "Bingo")) {
+        // Only match our specific bingo card inventories (contains bold "宾果" which is our format)
+        // This avoids matching other plugins that might have "宾果" in their inventory names
+        if (!title.contains(ChatColor.BOLD + "宾果")) {
             return;
         }
 

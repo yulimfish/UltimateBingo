@@ -94,7 +94,7 @@ public class MaterialList {
                 addDefaultMaterials();
                 saveMaterialsToFile();
             } catch (IOException e) {
-                Bukkit.getLogger().log(Level.WARNING, "Failed to create bingoitems.yml!");
+                Bukkit.getLogger().log(Level.WARNING, "创建 bingoitems.yml 失败！");
             }
         } else {
             materialConfig = YamlConfiguration.loadConfiguration(materialsFile);
@@ -112,7 +112,7 @@ public class MaterialList {
             materialConfig.set("materials.impossible", impossible.stream().map(Material::name).collect(Collectors.toList()));
             materialConfig.save(materialsFile);
         } catch (IOException e) {
-            Bukkit.getLogger().log(Level.WARNING, "Could not save bingoitems.yml");
+            Bukkit.getLogger().log(Level.WARNING, "无法保存 bingoitems.yml");
         }
     }
 

@@ -43,7 +43,7 @@ public class SettingsListener implements Listener {
         if (ultimateBingo.bingoFunctions.isActivePlayer(player)) {
 
             // Ensure the event was triggered in the Bingo configuration GUI
-            if (e.getView().getTitle().contains("Bingo Configuration")) {
+            if (e.getView().getTitle().contains("宾果配置")) {
                 e.setCancelled(true);  // Prevent dragging items
 
                 int slot = e.getRawSlot();
@@ -101,7 +101,7 @@ public class SettingsListener implements Listener {
 
                 ultimateBingo.configFile.saveConfig();
 
-            } else if (e.getView().getTitle().equals(ChatColor.GOLD.toString() + ChatColor.BOLD + "Bingo Settings")) {
+            } else if (e.getView().getTitle().equals(ChatColor.GOLD.toString() + ChatColor.BOLD + "宾果设置")) {
                 e.setCancelled(true);
 
                 if (e.getCurrentItem().getItemMeta() != null) {
@@ -138,7 +138,7 @@ public class SettingsListener implements Listener {
                             if (isEasyDifficulty) {
 
                                 if (materialList.easy.size() <= 15) {
-                                    player.sendMessage(ChatColor.RED + "This category needs a minimum of 15 items.");
+                                    player.sendMessage(ChatColor.RED + "该分类至少需要保留 15 个物品。");
                                 } else {
                                     itemRemoved = true;
                                     materialList.removeItem(clickedItem.getType(), 1);
@@ -146,7 +146,7 @@ public class SettingsListener implements Listener {
                                 }
                             } else if (isNormalDifficulty) {
                                 if (materialList.normal.size() <= 15) {
-                                    player.sendMessage(ChatColor.RED + "This category needs a minimum of 15 items.");
+                                    player.sendMessage(ChatColor.RED + "该分类至少需要保留 15 个物品。");
                                 } else {
                                     itemRemoved = true;
                                     materialList.removeItem(clickedItem.getType(), 2);
@@ -154,7 +154,7 @@ public class SettingsListener implements Listener {
                                 }
                             } else if (isHardDifficulty) {
                                 if (materialList.hard.size() <= 10) {
-                                    player.sendMessage(ChatColor.RED + "This category needs a minimum of 10 items.");
+                                    player.sendMessage(ChatColor.RED + "该分类至少需要保留 10 个物品。");
                                 } else {
                                     itemRemoved = true;
                                     materialList.removeItem(clickedItem.getType(), 3);
@@ -162,7 +162,7 @@ public class SettingsListener implements Listener {
                                 }
                             } else if (isExtremeDifficulty) {
                                 if (materialList.extreme.size() <= 10) {
-                                    player.sendMessage(ChatColor.RED + "This category needs a minimum of 10 items.");
+                                    player.sendMessage(ChatColor.RED + "该分类至少需要保留 10 个物品。");
                                 } else {
                                     itemRemoved = true;
                                     materialList.removeItem(clickedItem.getType(), 4);
@@ -170,7 +170,7 @@ public class SettingsListener implements Listener {
                                 }
                             } else if (isImpossibleDifficulty) {
                                 if (materialList.impossible.size() <= 5) {
-                                    player.sendMessage(ChatColor.RED + "This category needs a minimum of 5 items.");
+                                    player.sendMessage(ChatColor.RED + "该分类至少需要保留 5 个物品。");
                                 } else {
                                     itemRemoved = true;
                                     materialList.removeItem(clickedItem.getType(), 5);
@@ -178,8 +178,8 @@ public class SettingsListener implements Listener {
                                 }
                             }
                             if (itemRemoved) {
-                                player.sendMessage(ChatColor.GREEN + "You removed "
-                                        + ChatColor.GOLD + clickedItem.getType().name() + ChatColor.GREEN + " from the Bingo Items");
+                                player.sendMessage(ChatColor.GREEN + "你将 "
+                                        + ChatColor.GOLD + ultimateBingo.bingoFunctions.getMaterialName(clickedItem.getType()) + ChatColor.GREEN + " 从宾果物品中移除了");
                             }
                         }
                     }
@@ -199,18 +199,18 @@ public class SettingsListener implements Listener {
                                 if (!materialList.getMaterials().get(settingsManager.getDifficultyInt(e.getView().getTitle())).contains(material)) {
 
                                     materialList.add(material, settingsManager.getDifficultyInt(e.getView().getTitle()));
-                                    player.sendMessage(ChatColor.GREEN + "You added " + ChatColor.GOLD
-                                            + material.name() + ChatColor.GREEN + " to the Bingo Items!");
+                                    player.sendMessage(ChatColor.GREEN + "你将 " + ChatColor.GOLD
+                                            + ultimateBingo.bingoFunctions.getMaterialName(material) + ChatColor.GREEN + " 添加到了宾果物品中！");
                                     createItemSettings(player, settingsManager.getDifficultyInt(e.getView().getTitle()));
 
                                     materialList.saveMaterialsToFile();
 
                                 } else {
-                                    player.sendMessage(ChatColor.RED + material.name() + " already exists in this difficulty!");
+                                    player.sendMessage(ChatColor.RED + ultimateBingo.bingoFunctions.getMaterialName(material) + " 已存在于该难度中！");
                                 }
 
                             } else {
-                                player.sendMessage(ChatColor.RED + "An error occurred, please try again.");
+                                player.sendMessage(ChatColor.RED + "发生错误，请重试。");
                             }
                         }
                     }
@@ -223,13 +223,13 @@ public class SettingsListener implements Listener {
         Inventory bingoItems = Bukkit.createInventory(player, 54, settingsManager.getDifficultyDisplay(difficulty));
 
         for (Material material : materialList.getMaterials().get(difficulty)){
-            ItemStack item = new ItemBuilder(material).withLore(ChatColor.LIGHT_PURPLE + "LEFT-CLICK to Remove").build();
+            ItemStack item = new ItemBuilder(material).withLore(ChatColor.LIGHT_PURPLE + "左键点击移除").build();
             bingoItems.addItem(item);
         }
         if (bingoItems.getItem(53) != null && !sentWarning){
-            player.sendMessage(ChatColor.RED + "You have reached the maximum of items that are visible in the GUI! " +
-                    "The item will still be added but you can't see it in the settings if you do not remove any other items. " +
-                    "In the future there will hopefully be GUI pages to see all added items. This message will only be sent once after every restart." );
+            player.sendMessage(ChatColor.RED + "你已达到 GUI 中可见物品数量上限！" +
+                    "物品仍会被添加，但如果不移除其他物品，你将无法在设置界面看到它。" +
+                    "未来可能会加入分页功能。此消息每次重启后只会发送一次。" );
             sentWarning = true;
         }
 

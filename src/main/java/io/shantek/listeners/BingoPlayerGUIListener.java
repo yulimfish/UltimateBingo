@@ -36,7 +36,7 @@ public class BingoPlayerGUIListener implements Listener {
         if (ultimateBingo.bingoFunctions.canInteractWithCard(player)) {
 
             // Ensure the event was triggered in the Bingo configuration GUI
-            if (e.getView().getTitle().contains("Welcome to Ultimate Bingo")) {
+            if (e.getView().getTitle().contains("欢迎来到终极宾果")) {
                 e.setCancelled(true);  // Prevent dragging items
 
                 int slot = e.getRawSlot();
@@ -55,7 +55,7 @@ public class BingoPlayerGUIListener implements Listener {
                     }
                 }
 
-            } else if (e.getView().getTitle().contains("Player Bingo Cards") || (e.getView().getTitle().contains("Team Bingo Cards"))) {
+            } else if (e.getView().getTitle().contains("玩家宾果卡片") || (e.getView().getTitle().contains("队伍宾果卡片"))) {
 
                 // Prevent any items from being dragged
                 e.setCancelled(true);
@@ -66,9 +66,9 @@ public class BingoPlayerGUIListener implements Listener {
                 if (slot == 53) {
                     ItemStack clickedItem = e.getCurrentItem();
                     if (clickedItem != null && clickedItem.getType() == Material.CHEST) {
-                        // Check the display name of the item to confirm it's the "Back to Menu" chest
+                        // Check the display name of the item to confirm it's the "返回菜单" chest
                         if (clickedItem.hasItemMeta() && clickedItem.getItemMeta().hasDisplayName()
-                                && ChatColor.stripColor(clickedItem.getItemMeta().getDisplayName()).equals("Back to menu")) {
+                                && ChatColor.stripColor(clickedItem.getItemMeta().getDisplayName()).equals("返回菜单")) {
 
                             player.closeInventory();
                             player.openInventory(ultimateBingo.bingoPlayerGUIManager.createPlayerGUI(player));
@@ -106,7 +106,7 @@ public class BingoPlayerGUIListener implements Listener {
                         // Check if a player with this name exists and is online
                         Player targetPlayer = Bukkit.getPlayerExact(displayName);
                         if (targetPlayer == null) {
-                            e.getWhoClicked().sendMessage(ChatColor.RED + "The player's bingo card you are trying to access does not exist or they are not online.");
+                            e.getWhoClicked().sendMessage(ChatColor.RED + "你尝试查看的玩家宾果卡片不存在或该玩家不在线。");
                             return; // No such player found or not online, ignore the click
                         }
 

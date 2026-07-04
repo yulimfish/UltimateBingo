@@ -43,7 +43,7 @@ public class BingoPlaceholderExpansion extends PlaceholderExpansion {
                     OfflinePlayer offlinePlayer = plugin.getServer().getOfflinePlayer(playerUUID);
                     return offlinePlayer.getName();
                 } else {
-                    return "N/A";
+                    return "未设置";
                 }
             }
 

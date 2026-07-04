@@ -51,13 +51,13 @@ public class BingoSignListener implements Listener {
                         if (player.hasPermission("shantek.ultimatebingo.signs")) {
 
                             if (!plugin.bingoButtonActive) {
-                                player.sendMessage(ChatColor.RED + "A bingo game is already active!");
+                                player.sendMessage(ChatColor.RED + "宾果游戏已经在进行中！");
                             } else {
                                 plugin.bingoFunctions.updateSetting(entry.getKey(), player);
                             }
                             event.setCancelled(true);
                         } else {
-                            player.sendMessage(ChatColor.RED + "You do not have permission to change settings!");
+                            player.sendMessage(ChatColor.RED + "你没有权限更改设置！");
                             event.setCancelled(true);
                         }
 
@@ -78,7 +78,7 @@ public class BingoSignListener implements Listener {
                             default -> ChatColor.WHITE;
                         };
                         String teamName = team.substring(0, 1).toUpperCase() + team.substring(1);
-                        player.sendMessage(ChatColor.GREEN + "You have selected the " + teamColor + teamName + ChatColor.GREEN + " team!");
+                        player.sendMessage(ChatColor.GREEN + "你已选择 " + teamColor + teamName + ChatColor.GREEN + " 队干得漂亮！");
                         player.playSound(player.getLocation(), org.bukkit.Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.0f);
                         break;
                     }
@@ -111,10 +111,10 @@ public class BingoSignListener implements Listener {
                             if (bingoWorld != null) {
                                 Location spawn = bingoWorld.getSpawnLocation();
                                 player.teleport(spawn);
-                                player.sendMessage(ChatColor.GREEN + "A bingo game is currently in progress. Type /bingo to join in!");
+                                player.sendMessage(ChatColor.GREEN + "宾果游戏正在进行中。输入 /bingo 加入！");
                             }
                         } else {
-                            player.sendMessage(ChatColor.RED + "A bingo game is already active!");
+                            player.sendMessage(ChatColor.RED + "宾果游戏已经在进行中！");
                         }
                     } else {
                         event.setCancelled(true);
@@ -125,7 +125,7 @@ public class BingoSignListener implements Listener {
                                     plugin.hubWorld, plugin.hubRegion);
 
                             if (hubPlayers.isEmpty()) {
-                                player.sendMessage(ChatColor.RED + "No players found in the hub region!");
+                                player.sendMessage(ChatColor.RED + "大厅区域内未找到玩家！");
                                 return;
                             }
 
@@ -137,7 +137,7 @@ public class BingoSignListener implements Listener {
                             // Use bingo world spawn as the spawn location
                             org.bukkit.World bingoWorld = Bukkit.getWorld(plugin.bingoWorld);
                             if (bingoWorld == null) {
-                                player.sendMessage(ChatColor.RED + "Bingo world not found!");
+                                player.sendMessage(ChatColor.RED + "未找到宾果世界！");
                                 plugin.bingoButtonActive = true;
                                 return;
                             }
@@ -147,7 +147,7 @@ public class BingoSignListener implements Listener {
 
                             // Notify and teleport all hub players to bingo world
                             for (Player hubPlayer : hubPlayers) {
-                                hubPlayer.sendMessage(ChatColor.GREEN + "Teleporting to the bingo world...");
+                                hubPlayer.sendMessage(ChatColor.GREEN + "正在传送至宾果世界……");
                                 hubPlayer.teleport(bingoSpawn);
                             }
 
@@ -159,7 +159,7 @@ public class BingoSignListener implements Listener {
 
                         } else {
                             // === NORMAL MODE START ===
-                            plugin.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + "Game will start in 5 seconds...");
+                            plugin.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + "游戏将在 5 秒后开始……");
 
                             plugin.bingoButtonActive = false;
 
@@ -189,7 +189,7 @@ public class BingoSignListener implements Listener {
             if (blockLoc.equals(signLoc)) {
                 if (!event.getPlayer().isOp()) {
                     event.setCancelled(true);
-                    event.getPlayer().sendMessage(ChatColor.RED + "You cannot break bingo signs!");
+                    event.getPlayer().sendMessage(ChatColor.RED + "你不能破坏宾果告示牌！");
                 }
                 return;
             }
@@ -200,7 +200,7 @@ public class BingoSignListener implements Listener {
             if (blockLoc.equals(signLoc)) {
                 if (!event.getPlayer().isOp()) {
                     event.setCancelled(true);
-                    event.getPlayer().sendMessage(ChatColor.RED + "You cannot break bingo signs!");
+                    event.getPlayer().sendMessage(ChatColor.RED + "你不能破坏宾果告示牌！");
                 }
                 return;
             }

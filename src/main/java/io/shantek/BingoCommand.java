@@ -22,16 +22,16 @@ public class BingoCommand implements CommandExecutor {
     private final SettingsManager settingsManager;
     private final BingoManager bingoManager;
     private final InGameConfigManager inGameConfigManager;
-    String loadoutType = "Empty Inventory";
+    String loadoutType = "空背包";
 
     private final Map<String, List<String>> settingOptions = Map.of(
             "GameMode", List.of("traditional", "speedrun", "brewdash", "group", "teams", "shuffle"),
             "Difficulty", List.of("easy", "normal", "hard"),
             "CardSize", List.of("small", "medium", "large"),
-            "Loadout", List.of("Naked Kit", "Starter Kit", "Boat Kit", "Flying Kit", "Archer Kit"),
-            "RevealCards", List.of("Enabled", "Disabled"),
-            "WinCondition", List.of("Single Row", "Full Card"),
-            "CardType", List.of("Identical", "Unique"),
+            "Loadout", List.of("裸装", "新手装备", "船只装备", "飞行装备", "弓箭装备"),
+            "RevealCards", List.of("开启", "关闭"),
+            "WinCondition", List.of("单行", "满卡"),
+            "CardType", List.of("相同", "唯一"),
             "TimeLimit", List.of("0", "5", "10", "15", "30", "60")
     );
 
@@ -45,40 +45,40 @@ public class BingoCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String s, String[] args) {
         if (!(commandSender instanceof Player player)) {
-            commandSender.sendMessage(ChatColor.RED + "This command can only be used by players.");
+            commandSender.sendMessage(ChatColor.RED + "该命令只能由玩家使用。");
             return true;
         }
 
         if (args.length > 0) {
             if (args[0].equalsIgnoreCase("stop") && player.hasPermission("shantek.ultimatebingo.stop")) {
                 if (ultimateBingo.multiWorldServer && !player.getWorld().getName().equalsIgnoreCase(ultimateBingo.bingoWorld.toLowerCase())) {
-                    player.sendMessage(ChatColor.RED + "This command can only be run while in the bingo world.");
+                    player.sendMessage(ChatColor.RED + "该命令只能在宾果世界中执行。");
                 } else {
                     stopBingo(player, false);
                 }
                 return true;
             } else if (args[0].equalsIgnoreCase("set") && player.isOp()) {
                 if (args.length < 2) {
-                    player.sendMessage(ChatColor.RED + "Usage: /bingo set <settingname|startbutton|hubspawn>");
+                    player.sendMessage(ChatColor.RED + "用法：/bingo set <settingname|startbutton|hubspawn>");
                     return true;
                 }
 
                 // Handle hubspawn separately — no sign/button needed
                 if (args[1].equalsIgnoreCase("hubspawn")) {
                     if (!ultimateBingo.hubConfig.exists()) {
-                        player.sendMessage(ChatColor.RED + "hub.yml does not exist! Create it first to enable hub mode.");
+                        player.sendMessage(ChatColor.RED + "hub.yml 不存在！请先创建它以启用大厅模式。");
                     } else if (ultimateBingo.hubWorld.isEmpty() || !player.getWorld().getName().equalsIgnoreCase(ultimateBingo.hubWorld)) {
-                        player.sendMessage(ChatColor.RED + "You must be standing in the hub world to set the hub spawn!");
+                        player.sendMessage(ChatColor.RED + "你必须站在大厅世界中才能设置大厅出生点！");
                     } else {
                         ultimateBingo.hubConfig.saveHubSpawn(player.getLocation());
-                        player.sendMessage(ChatColor.GREEN + "Hub spawn location saved successfully!");
+                        player.sendMessage(ChatColor.GREEN + "大厅出生点已保存成功！");
                     }
                     return true;
                 }
 
                 Block targetBlock = player.getTargetBlockExact(5);
                 if (targetBlock == null || (!targetBlock.getType().name().contains("SIGN") && !targetBlock.getType().name().contains("BUTTON"))) {
-                    player.sendMessage(ChatColor.RED + "You must be looking at a valid sign or button!");
+                    player.sendMessage(ChatColor.RED + "你必须看着一个有效的告示牌或按钮！");
                     return true;
                 }
 
@@ -89,18 +89,18 @@ public class BingoCommand implements CommandExecutor {
                 for (Map.Entry<String, Location> entry : ultimateBingo.bingoFunctions.signLocations.entrySet()) {
                     if (targetBlock.getLocation().equals(entry.getValue())) {
 
-                        player.sendMessage(ChatColor.YELLOW + "Sign already used for " + entry.getKey());
+                        player.sendMessage(ChatColor.YELLOW + "该告示牌已被用于 " + entry.getKey());
                         validSign = false;
                     }
                 }
                 if (validSign) {
                     if (settingOptions.containsKey(settingName)) {
                         ultimateBingo.inGameConfigManager.saveSignLocation(settingName, targetLocation);
-                        player.sendMessage(ChatColor.GREEN + "Sign for " + settingName + " set successfully!");
+                        player.sendMessage(ChatColor.GREEN + "" + settingName + " 的告示牌设置成功！");
                         ultimateBingo.inGameConfigManager.loadSignLocations();
                     } else if (settingName.equalsIgnoreCase("startbutton")) {
                         ultimateBingo.inGameConfigManager.saveButtonLocation(targetLocation);
-                        player.sendMessage(ChatColor.GREEN + "Start button set successfully!");
+                        player.sendMessage(ChatColor.GREEN + "开始按钮设置成功！");
                         ultimateBingo.inGameConfigManager.loadSignLocations();
                     } else if (settingName.equalsIgnoreCase("TeamRed") || settingName.equalsIgnoreCase("TeamBlue") || settingName.equalsIgnoreCase("TeamYellow")) {
                         String team = settingName.replace("Team", "").toLowerCase();
@@ -112,16 +112,16 @@ public class BingoCommand implements CommandExecutor {
                             default -> ChatColor.WHITE;
                         };
                         String teamName = team.substring(0, 1).toUpperCase() + team.substring(1);
-                        player.sendMessage(ChatColor.GREEN + "Team sign for " + teamColor + teamName + ChatColor.GREEN + " set successfully!");
+                        player.sendMessage(ChatColor.GREEN + "" + teamColor + teamName + ChatColor.GREEN + " 的告示牌设置成功！");
                     } else {
-                        player.sendMessage(ChatColor.RED + "Invalid setting name.");
+                        player.sendMessage(ChatColor.RED + "无效的设置名称。");
                     }
                 }
                 return true;
 
             } else if (args[0].equalsIgnoreCase("remove") && player.hasPermission("shantek.ultimatebingo.settings")) {
                 if (args.length < 2) {
-                    player.sendMessage(ChatColor.RED + "Usage: /bingo remove <signType|startbutton>");
+                    player.sendMessage(ChatColor.RED + "用法：/bingo remove <signType|startbutton>");
                     return true;
                 }
 
@@ -129,25 +129,25 @@ public class BingoCommand implements CommandExecutor {
 
                 if (settingName.equalsIgnoreCase("startbutton")) {
                     if (ultimateBingo.bingoFunctions.startButtonLocation == null) {
-                        player.sendMessage(ChatColor.RED + "The start button hasn't been set up.");
+                        player.sendMessage(ChatColor.RED + "开始按钮尚未设置。");
                     } else {
                         ultimateBingo.bingoFunctions.removeButton();
-                        player.sendMessage(ChatColor.GREEN + "The start button has been removed.");
+                        player.sendMessage(ChatColor.GREEN + "开始按钮已移除。");
                     }
                 } else if (ultimateBingo.bingoFunctions.signLocations.containsKey(settingName)) {
                     ultimateBingo.bingoFunctions.removeSign(settingName);
-                    player.sendMessage(ChatColor.GREEN + "The sign for " + settingName + " has been removed.");
+                    player.sendMessage(ChatColor.GREEN + "" + settingName + " 的告示牌已移除。");
                 } else if (settingName.equalsIgnoreCase("TeamRed") || settingName.equalsIgnoreCase("TeamBlue") || settingName.equalsIgnoreCase("TeamYellow")) {
                     String team = settingName.replace("Team", "").toLowerCase();
                     if (ultimateBingo.bingoFunctions.teamSignLocations.containsKey(team)) {
                         ultimateBingo.inGameConfigManager.removeTeamSign(team);
                         String teamName = team.substring(0, 1).toUpperCase() + team.substring(1);
-                        player.sendMessage(ChatColor.GREEN + "The team sign for " + teamName + " has been removed.");
+                        player.sendMessage(ChatColor.GREEN + "" + teamName + " 的告示牌已移除。");
                     } else {
-                        player.sendMessage(ChatColor.RED + "No team sign set for that color.");
+                        player.sendMessage(ChatColor.RED + "该颜色尚未设置队伍告示牌。");
                     }
                 } else {
-                    player.sendMessage(ChatColor.RED + "The sign for " + settingName + " hasn't been set up.");
+                    player.sendMessage(ChatColor.RED + "" + settingName + " 的告示牌尚未设置。");
                 }
                 return true;
 
@@ -155,30 +155,30 @@ public class BingoCommand implements CommandExecutor {
                 ultimateBingo.configFile.reloadConfigFile();
                 ultimateBingo.hubConfig.load();
                 ultimateBingo.reloadMapBackgrounds();
-                player.sendMessage(ChatColor.GREEN + "Bingo config + map background reloaded.");
+                player.sendMessage(ChatColor.GREEN + "宾果配置与地图背景已重载。");
                 return true;
             } else if (args[0].equalsIgnoreCase("leaderboard")) {
                 if (args.length == 1) {
                     List<PlayerStats> topPlayersOverall = ultimateBingo.getLeaderboard().getTopPlayersOverall();
-                    player.sendMessage(ChatColor.GREEN + "Top Players Overall:");
+                    player.sendMessage(ChatColor.GREEN + "总排行榜：");
                     int rank = 1;
                     for (PlayerStats stats : topPlayersOverall) {
                         UUID playerUUID = stats.getPlayerUUID();
                         OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerUUID);
                         String playerName = offlinePlayer.getName() != null ? offlinePlayer.getName() : playerUUID.toString();
-                        player.sendMessage(ChatColor.YELLOW + "#" + rank + ": " + playerName + " - " + stats.getTotalWins() + " wins, " + stats.getTotalPlayed() + " played");
+                        player.sendMessage(ChatColor.YELLOW + "#" + rank + ": " + playerName + " - " + stats.getTotalWins() + " 胜，" + stats.getTotalPlayed() + " 场");
                         rank++;
                         if (rank > 10) break;
                     }
-                    if (rank == 1) player.sendMessage(ChatColor.YELLOW + "No players found for this category.");
+                    if (rank == 1) player.sendMessage(ChatColor.YELLOW + "该分类下暂无玩家。");
                     return true;
                 }
             } else if (args[0].equalsIgnoreCase("gui") && player.hasPermission("shantek.ultimatebingo.play")) {
                 if (ultimateBingo.multiWorldServer && !player.getWorld().getName().equalsIgnoreCase(ultimateBingo.bingoWorld.toLowerCase())) {
-                    player.sendMessage(ChatColor.RED + "This command can only be run while in the bingo world.");
+                    player.sendMessage(ChatColor.RED + "该命令只能在宾果世界中执行。");
                 } else {
                     if (ultimateBingo.bingoStarted) {
-                        player.sendMessage(ChatColor.RED + "A bingo game is in progress. Finish the game or use /bingo stop");
+                        player.sendMessage(ChatColor.RED + "宾果游戏正在进行中。请结束游戏或使用 /bingo stop");
                     } else {
                         player.openInventory(ultimateBingo.bingoGameGUIManager.createGameGUI(player));
                     }
@@ -191,7 +191,7 @@ public class BingoCommand implements CommandExecutor {
                     // Work out the game time to display
                     String timeLimitString;
                     if (ultimateBingo.gameTime == 0) {
-                        timeLimitString = "Unlimited Time";
+                        timeLimitString = "无时间限制";
                     } else {
 
                         // Calculate remaining time
@@ -200,23 +200,23 @@ public class BingoCommand implements CommandExecutor {
                         long remainingMinutes = remainingTimeMillis / (60 * 1000);
 
                         // Work out how long is left and display it here if the game is active
-                        timeLimitString = ultimateBingo.gameTime + " minutes (" + remainingMinutes + " remaining)";
+                        timeLimitString = ultimateBingo.gameTime + " 分钟 (" + remainingMinutes + " 分钟）";
 
                     }
 
                     // This may be removed in the near future and implemented in to the bingo card?
-                    player.sendMessage(ChatColor.WHITE + "Bingo is currently set up with the following configuration:");
+                    player.sendMessage(ChatColor.WHITE + "宾果当前配置如下：");
                     if (ultimateBingo.currentDifficulty == null) {
-                        player.sendMessage(ChatColor.GREEN + "Difficulty: " + ChatColor.YELLOW + "N/A");
+                        player.sendMessage(ChatColor.GREEN + "难度：" + ChatColor.YELLOW + "未设置");
                     } else {
-                        player.sendMessage(ChatColor.GREEN + "Difficulty: " + ChatColor.YELLOW + ultimateBingo.currentDifficulty.toUpperCase());
+                        player.sendMessage(ChatColor.GREEN + "难度：" + ChatColor.YELLOW + ultimateBingo.currentDifficulty.toUpperCase());
                     }
-                    player.sendMessage(ChatColor.GREEN + "Card type: " + ChatColor.YELLOW + ultimateBingo.currentCardSize.toUpperCase() + "/" + (ultimateBingo.currentUniqueCard ? "UNIQUE" : "IDENTICAL"));
-                    player.sendMessage(ChatColor.GREEN + "Game mode: " + ChatColor.YELLOW + ultimateBingo.currentGameMode.toUpperCase());
-                    player.sendMessage(ChatColor.GREEN + "Win condition: " + ChatColor.YELLOW + (ultimateBingo.currentFullCard ? "FULL CARD" : "BINGO"));
-                    player.sendMessage(ChatColor.GREEN + "Time limit: " + ChatColor.YELLOW + (timeLimitString));
+                    player.sendMessage(ChatColor.GREEN + "卡片类型：" + ChatColor.YELLOW + ultimateBingo.currentCardSize.toUpperCase() + "/" + (ultimateBingo.currentUniqueCard ? "唯一" : "相同"));
+                    player.sendMessage(ChatColor.GREEN + "游戏模式：" + ChatColor.YELLOW + ultimateBingo.currentGameMode.toUpperCase());
+                    player.sendMessage(ChatColor.GREEN + "胜利条件：" + ChatColor.YELLOW + (ultimateBingo.currentFullCard ? "满卡" : "宾果"));
+                    player.sendMessage(ChatColor.GREEN + "时间限制：" + ChatColor.YELLOW + (timeLimitString));
                 } else {
-                    player.sendMessage(ChatColor.YELLOW + "Bingo isn't currently running!");
+                    player.sendMessage(ChatColor.YELLOW + "宾果当前未运行！");
                 }
 
             } else if (args[0].equalsIgnoreCase("settings") && player.hasPermission("shantek.ultimatebingo.settings")) {
@@ -225,13 +225,13 @@ public class BingoCommand implements CommandExecutor {
                 player.openInventory(settingsGUI);
                 return true;
             } else {
-                player.sendMessage(ChatColor.RED + "You do not have permission to do that!");
+                player.sendMessage(ChatColor.RED + "你没有权限执行该操作！");
                 return true;
             }
         } else {
             if (ultimateBingo.bingoStarted && ultimateBingo.bingoCardActive) {
                 if (ultimateBingo.multiWorldServer && !player.getWorld().getName().equalsIgnoreCase(ultimateBingo.bingoWorld.toLowerCase())) {
-                    player.sendMessage(ChatColor.RED + "This command can only be run while in the bingo world.");
+                    player.sendMessage(ChatColor.RED + "该命令只能在宾果世界中执行。");
                 } else {
                     if (ultimateBingo.currentGameMode.equalsIgnoreCase("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
                         ultimateBingo.bingoFunctions.resetIndividualPlayer(player, true);
@@ -243,7 +243,7 @@ public class BingoCommand implements CommandExecutor {
                     player.openInventory(ultimateBingo.bingoPlayerGUIManager.createPlayerGUI(player));
                 }
             } else if (!ultimateBingo.bingoStarted) {
-                player.sendMessage(ChatColor.RED + "Bingo hasn't started yet!");
+                player.sendMessage(ChatColor.RED + "宾果尚未开始！");
             }
         }
         return false;
@@ -257,7 +257,7 @@ public class BingoCommand implements CommandExecutor {
         if (ultimateBingo.bingoStarted) {
 
             commandPlayer.closeInventory();
-            commandPlayer.sendMessage(ChatColor.RED + "Bingo is already running!");
+            commandPlayer.sendMessage(ChatColor.RED + "宾果已经在运行中！");
 
         } else {
 
@@ -309,23 +309,23 @@ public class BingoCommand implements CommandExecutor {
             String cardType;
             if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
                 // Always print shared for a group game
-                cardType = "SHARED";
+                cardType = "共享";
             } else {
-                cardType = ultimateBingo.currentUniqueCard ? "UNIQUE" : "IDENTICAL";
+                cardType = ultimateBingo.currentUniqueCard ? "唯一" : "相同";
             }
-            String bingoType = ultimateBingo.currentFullCard ? "FULL CARD" : "SINGLE ROW";
+            String bingoType = ultimateBingo.currentFullCard ? "满卡" : "单行";
             String revealType = ultimateBingo.currentRevealCards ? "ENABLED" : "DISABLED";
 
             if (ultimateBingo.currentLoadoutType == 0) {
-                loadoutType = "Naked Kit";
+                loadoutType = "裸装";
             } else if (ultimateBingo.currentLoadoutType == 1) {
-                loadoutType = "Starter Kit";
+                loadoutType = "新手装备";
             } else if (ultimateBingo.currentLoadoutType == 2) {
-                loadoutType = "Boat Kit";
+                loadoutType = "船只装备";
             } else if (ultimateBingo.currentLoadoutType == 3) {
-                loadoutType = "Flying Kit";
+                loadoutType = "飞行装备";
             } else if (ultimateBingo.currentLoadoutType == 4) {
-                loadoutType = "Archer Kit";
+                loadoutType = "弓箭装备";
             }
 
             // Store a reference to all online players
@@ -354,7 +354,7 @@ public class BingoCommand implements CommandExecutor {
                     }, 20);
 
                     Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-                        player.sendTitle(ChatColor.YELLOW + bingoType, ChatColor.WHITE + "REVEAL MODE " + revealType, 10, 40, 10);
+                        player.sendTitle(ChatColor.YELLOW + bingoType, ChatColor.WHITE + "公开模式 " + revealType, 10, 40, 10);
                     }, 80);
 
                     Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
@@ -372,17 +372,17 @@ public class BingoCommand implements CommandExecutor {
                         }, 200 + 30 * (3 - count)); // Countdown starts at 5 seconds
 
                     }
-                    // Final "GO!" message and chime, bold and green
+                    // Final "开始！" message and chime, bold and green
                     Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
 
                         if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams") && ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("yellow")) {
-                            player.sendTitle(ChatColor.YELLOW + "" + ChatColor.BOLD + "GO YELLOW!", "", 10, 20, 10);
+                            player.sendTitle(ChatColor.YELLOW + "" + ChatColor.BOLD + "黄队冲！", "", 10, 20, 10);
                         } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams") && ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("red")) {
-                            player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "GO RED!", "", 10, 20, 10);
+                            player.sendTitle(ChatColor.RED + "" + ChatColor.BOLD + "红队冲！", "", 10, 20, 10);
                         } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams") && ultimateBingo.bingoFunctions.getTeam(player).equalsIgnoreCase("blue")) {
-                            player.sendTitle(ChatColor.BLUE + "" + ChatColor.BOLD + "GO BLUE!", "", 10, 20, 10);
+                            player.sendTitle(ChatColor.BLUE + "" + ChatColor.BOLD + "蓝队冲！", "", 10, 20, 10);
                         } else {
-                            player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "GO!", "", 10, 20, 10);
+                            player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + "开始！", "", 10, 20, 10);
                         }
 
                         player.playSound(player.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.0f);
@@ -408,64 +408,64 @@ public class BingoCommand implements CommandExecutor {
 
                 String timeLimitString;
                 if (ultimateBingo.gameTime == 0) {
-                    timeLimitString = "Time Limit: Unlimited Time";
+                    timeLimitString = "时间限制：无限制";
                 } else {
-                    timeLimitString = "Time Limit: " + ultimateBingo.gameTime + " minutes";
+                    timeLimitString = "时间限制：" + ultimateBingo.gameTime + " 分钟";
                 }
 
                 if (ultimateBingo.currentGameMode.equalsIgnoreCase("traditional")) {
 
-                    ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Traditional bingo - collect items to mark them off your card!");
+                    ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "传统宾果 - 收集物品并在卡片上勾选！");
 
                     if (ultimateBingo.currentFullCard) {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Get a full card to win! " + timeLimitString);
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "集满整张卡即可获胜！" + timeLimitString);
                     } else {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Get a single row to win! " + timeLimitString);
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "连成一行即可获胜！" + timeLimitString);
                     }
                 } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("speedrun")) {
 
-                    ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Speed run - Hunger/health resets with each item you tick off!");
+                    ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "速跑模式 - 每勾选一项都会重置饥饿值与生命值！");
 
                     if (ultimateBingo.currentFullCard) {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Get a full card to win! " + timeLimitString);
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "集满整张卡即可获胜！" + timeLimitString);
                     } else {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Get a single row to win! " + timeLimitString);
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "连成一行即可获胜！" + timeLimitString);
                     }
                 } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
 
-                    ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Group mode - Work as a team to get bingo!");
+                    ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "团队模式 - 齐心协力完成宾果！");
 
                     if (ultimateBingo.currentFullCard) {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Get a full card to win! " + timeLimitString);
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "集满整张卡即可获胜！" + timeLimitString);
                     } else {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Get a single row to win! " + timeLimitString);
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "连成一行即可获胜！" + timeLimitString);
                     }
                 } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
 
-                    ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Team mode - Work as a team to get bingo!");
+                    ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "队伍模式 - 齐心协力完成宾果！");
 
                     if (ultimateBingo.currentFullCard) {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Get a full card to win! " + timeLimitString);
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "集满整张卡即可获胜！" + timeLimitString);
                     } else {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Get a single row to win! " + timeLimitString);
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "连成一行即可获胜！" + timeLimitString);
                     }
                 } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("brewdash")) {
 
-                    ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Brew dash - Hit players with a random potion for each item you tick off!");
+                    ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "药水冲刺 - 每勾选一项都会对其他玩家施放随机药水！");
 
                     if (ultimateBingo.currentFullCard) {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Get a full card to win! " + timeLimitString);
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "集满整张卡即可获胜！" + timeLimitString);
                     } else {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Get a single row to win! " + timeLimitString);
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "连成一行即可获胜！" + timeLimitString);
                     }
                 } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("shuffle")) {
 
-                    ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Shuffle mode - Cards shuffle every " + ultimateBingo.shuffleIntervalMinutes + " minute(s)!");
+                    ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "洗牌模式 - 每 " + ultimateBingo.shuffleIntervalMinutes + " 分钟洗牌一次！");
 
                     if (ultimateBingo.currentFullCard) {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Get a full card to win! " + timeLimitString);
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "集满整张卡即可获胜！" + timeLimitString);
                     } else {
-                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Get a single row to win! " + timeLimitString);
+                        ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "连成一行即可获胜！" + timeLimitString);
                     }
 
                     // Start the shuffle scheduler
@@ -517,7 +517,7 @@ public class BingoCommand implements CommandExecutor {
                         // Add them to the player list
                         ultimateBingo.bingoFunctions.addPlayer(player.getUniqueId());
                     }
-                }, 310); // 210 ticks = 10.5 seconds, just after the "GO!"
+                }, 310); // 210 ticks = 10.5 seconds, just after the "开始！"
 
             });
         }
@@ -543,7 +543,7 @@ public class BingoCommand implements CommandExecutor {
     public void stopBingo(Player sender, boolean gameCompleted) {
 
         if (!ultimateBingo.bingoStarted && !gameCompleted) {
-            sender.sendMessage(ChatColor.RED + "Bingo hasn't started yet! Start with /bingo start");
+            sender.sendMessage(ChatColor.RED + "宾果尚未开始！使用 /bingo start 开始");
             return;
         }
 
@@ -557,13 +557,13 @@ public class BingoCommand implements CommandExecutor {
         ultimateBingo.bingoStarted = false;
 
         if (!gameCompleted) {
-            sender.sendMessage(ChatColor.RED + "Bingo has been stopped!");
+            sender.sendMessage(ChatColor.RED + "宾果已停止！");
         } else {
             // Show how long the game ran for
             Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
                 long duration = System.currentTimeMillis() - ultimateBingo.gameStartTime;
                 String gameDuration = ultimateBingo.bingoFunctions.formatAndShowGameDuration(duration);
-                ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Game duration: " + gameDuration);
+                ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "游戏时长：" + gameDuration);
             }, 80L);
         }
 
@@ -639,7 +639,7 @@ public class BingoCommand implements CommandExecutor {
             if (teamInventory != null) {
                 sender.openInventory(teamInventory);
             } else {
-                sender.sendMessage(ChatColor.RED + "No team inventory found. Are you in an active game?");
+                sender.sendMessage(ChatColor.RED + "未找到队伍背包。你是否在一场进行中的游戏中？");
 
             }
 
@@ -649,20 +649,20 @@ public class BingoCommand implements CommandExecutor {
                 sender.openInventory(bingoManager.getBingoGUIs().get(sender.getUniqueId()));
             } else {
                 if (sender.hasPermission("shantek.ultimatebingo.start")) {
-                    sender.sendMessage(ChatColor.RED + "You missed the opportunity to join Bingo! Use /bingo start if you want to create a new game.");
+                    sender.sendMessage(ChatColor.RED + "你错过了加入宾果的机会！想创建新游戏请使用 /bingo start");
                 }
 
                 if (!sender.hasPermission("shantek.ultimatebingo.start")) {
-                    sender.sendMessage(ChatColor.RED + "You missed the opportunity to join Bingo!");
+                    sender.sendMessage(ChatColor.RED + "你错过了加入宾果的机会！");
                 }
             }
         } else {
             if (sender.hasPermission("shantek.ultimatebingo.start")) {
-                sender.sendMessage(ChatColor.RED + "Bingo hasn't started yet! Use /bingo start to start");
+                sender.sendMessage(ChatColor.RED + "宾果尚未开始！使用 /bingo start 开始");
             }
 
             if (!sender.hasPermission("shantek.ultimatebingo.start")) {
-                sender.sendMessage(ChatColor.RED + "Bingo hasn't started yet!");
+                sender.sendMessage(ChatColor.RED + "宾果尚未开始！");
             }
 
         }
@@ -677,12 +677,12 @@ public class BingoCommand implements CommandExecutor {
                 sender.openInventory(ultimateBingo.bingoManager.getBingoGUIs().get(otherPlayer.getUniqueId()));
             } else {
                 // Couldn't find that players name in the list
-                sender.sendMessage(ChatColor.RED + "Unable to find a bingo card for " + otherPlayer.getName());
+                sender.sendMessage(ChatColor.RED + "未找到 " + otherPlayer.getName());
 
             }
         } else {
 
-            sender.sendMessage(ChatColor.RED + "Bingo hasn't started yet!");
+            sender.sendMessage(ChatColor.RED + "宾果尚未开始！");
 
 
         }
@@ -692,7 +692,7 @@ public class BingoCommand implements CommandExecutor {
     public void openBingoTeamCard(Player sender, Inventory inventory) {
 
         if (inventory == null) {
-            sender.sendMessage(ChatColor.RED + "No team inventory found. Are you in an active game?");
+            sender.sendMessage(ChatColor.RED + "未找到队伍背包。你是否在一场进行中的游戏中？");
         } else {
             // Close their existing inventory
             sender.closeInventory();

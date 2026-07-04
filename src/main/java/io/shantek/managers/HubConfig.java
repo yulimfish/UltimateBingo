@@ -69,12 +69,12 @@ public class HubConfig {
 
         // Log what we found
         if (!plugin.hubWorld.isEmpty() && !plugin.hubRegion.isEmpty()) {
-            plugin.getLogger().info("Hub mode enabled: world=" + plugin.hubWorld
-                    + ", region=" + plugin.hubRegion
-                    + ", delay=" + plugin.hubTeleportDelay + "s"
-                    + (plugin.hubSpawnLocation != null ? ", spawn set" : ", spawn NOT set (use /bingo set hubspawn)"));
+            plugin.getLogger().info("大厅模式已启用：世界=" + plugin.hubWorld
+                    + ", 区域=" + plugin.hubRegion
+                    + ", 延迟=" + plugin.hubTeleportDelay + "秒"
+                    + (plugin.hubSpawnLocation != null ? ", 出生点已设置" : ", 出生点未设置（使用 /bingo set hubspawn）"));
         } else {
-            plugin.getLogger().info("hub.yml found but hub-world or hub-region is empty. Hub mode disabled.");
+            plugin.getLogger().info("找到 hub.yml，但 hub-world 或 hub-region 为空。大厅模式已禁用。");
         }
     }
 
@@ -84,7 +84,7 @@ public class HubConfig {
      */
     public void saveHubSpawn(Location location) {
         if (!hubFile.exists()) {
-            plugin.getLogger().warning("Cannot save hub spawn — hub.yml does not exist!");
+            plugin.getLogger().warning("无法保存大厅出生点 —— hub.yml 不存在！");
             return;
         }
 
@@ -94,7 +94,7 @@ public class HubConfig {
             config.save(hubFile);
             plugin.hubSpawnLocation = location;
         } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Failed to save hub spawn to hub.yml", e);
+            plugin.getLogger().log(Level.SEVERE, "保存大厅出生点到 hub.yml 失败", e);
         }
     }
 

@@ -35,7 +35,7 @@ public class BingoMapInteractListener implements Listener {
         
         MapMeta meta = (MapMeta) item.getItemMeta();
         if (meta == null || !meta.hasDisplayName() || 
-            !meta.getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
+            !meta.getDisplayName().equals(ChatColor.GOLD + "宾果卡片")) {
             return;
         }
         
@@ -51,7 +51,7 @@ public class BingoMapInteractListener implements Listener {
                 if (plugin.currentGameMode.equalsIgnoreCase("group") || 
                     plugin.currentGameMode.equalsIgnoreCase("teams")) {
                     if (!plugin.bingoFunctions.isPlayerInGame(player.getUniqueId())) {
-                        player.sendMessage(ChatColor.RED + "Type /bingo to join the game.");
+                        player.sendMessage(ChatColor.RED + "输入 /bingo 加入游戏。");
                     } else {
                         plugin.bingoCommand.openBingo(player);
                     }
@@ -60,7 +60,7 @@ public class BingoMapInteractListener implements Listener {
                            plugin.bingoManager.checkHasBingoCard(player))) {
                     plugin.bingoCommand.openBingo(player);
                 } else {
-                    player.sendMessage(ChatColor.RED + "Bingo hasn't started yet!");
+                    player.sendMessage(ChatColor.RED + "宾果尚未开始！");
                 }
                 
                 event.setCancelled(true);

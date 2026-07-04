@@ -23,12 +23,12 @@ public class BingoPlayerGUIManager {
     }
 
     public Inventory createPlayerGUI(Player player) {
-        Inventory gameConfigInventory = Bukkit.createInventory(player, 9, ChatColor.GOLD.toString() + ChatColor.LIGHT_PURPLE + "Welcome to Ultimate Bingo");
+        Inventory gameConfigInventory = Bukkit.createInventory(player, 9, ChatColor.GOLD.toString() + ChatColor.LIGHT_PURPLE + "欢迎来到终极宾果");
 
-        gameConfigInventory.setItem(0, createItem(ultimateBingo.bingoCardMaterial, "Replacement Bingo Card", "Win condition: " + ultimateBingo.fullCard.toUpperCase()));
+        gameConfigInventory.setItem(0, createItem(ultimateBingo.bingoCardMaterial, "备用宾果卡片", "胜利条件：" + ultimateBingo.fullCard.toUpperCase()));
 
         // Only show the reveal cards option if this is enabled
-        if (ultimateBingo.currentRevealCards) { gameConfigInventory.setItem(1, createItem(Material.SPYGLASS, "View Players Cards", "Get a peak at other players cards!"));}
+        if (ultimateBingo.currentRevealCards) { gameConfigInventory.setItem(1, createItem(Material.SPYGLASS, "查看玩家卡片", "偷偷看一眼其他玩家的卡片！"));}
 
         return gameConfigInventory;
     }
@@ -46,14 +46,14 @@ public class BingoPlayerGUIManager {
         // Do team cards and use wool
 
         if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
-            inventory = Bukkit.createInventory(null, 54, ChatColor.GOLD.toString() + ChatColor.LIGHT_PURPLE + "Team Bingo Cards");
+            inventory = Bukkit.createInventory(null, 54, ChatColor.GOLD.toString() + ChatColor.LIGHT_PURPLE + "队伍宾果卡片");
 
 
             if (ultimateBingo.bingoFunctions.isRedTeamNotEmpty()) {
                 ItemStack redTeam = new ItemStack(Material.RED_WOOL);
                 ItemMeta redMeta = redTeam.getItemMeta();
                 if (redMeta != null) {
-                    redMeta.setDisplayName(ChatColor.RED + "Red Team");
+                    redMeta.setDisplayName(ChatColor.RED + "红队");
                     redMeta.setLore(Arrays.asList(ultimateBingo.bingoFunctions.getRedTeamPlayerNames().split(", ")));
                     redTeam.setItemMeta(redMeta);
 
@@ -65,7 +65,7 @@ public class BingoPlayerGUIManager {
                 ItemStack blueTeam = new ItemStack(Material.BLUE_WOOL);
                 ItemMeta blueMeta = blueTeam.getItemMeta();
                 if (blueMeta != null) {
-                    blueMeta.setDisplayName(ChatColor.BLUE + "Blue Team");
+                    blueMeta.setDisplayName(ChatColor.BLUE + "蓝队");
                     blueMeta.setLore(Arrays.asList(ultimateBingo.bingoFunctions.getBlueTeamPlayerNames().split(", ")));
                     blueTeam.setItemMeta(blueMeta);
                     inventory.addItem(blueTeam);
@@ -76,7 +76,7 @@ public class BingoPlayerGUIManager {
                 ItemStack yellowTeam = new ItemStack(Material.YELLOW_WOOL);
                 ItemMeta yellowMeta = yellowTeam.getItemMeta();
                 if (yellowMeta != null) {
-                    yellowMeta.setDisplayName(ChatColor.YELLOW + "Yellow Team");
+                    yellowMeta.setDisplayName(ChatColor.YELLOW + "黄队");
                     yellowMeta.setLore(Arrays.asList(ultimateBingo.bingoFunctions.getYellowTeamPlayerNames().split(", ")));
                     yellowTeam.setItemMeta(yellowMeta);
                     inventory.addItem(yellowTeam);
@@ -85,7 +85,7 @@ public class BingoPlayerGUIManager {
 
         } else {
 
-            inventory = Bukkit.createInventory(null, 54, ChatColor.GOLD.toString() + ChatColor.LIGHT_PURPLE + "Player Bingo Cards");
+            inventory = Bukkit.createInventory(null, 54, ChatColor.GOLD.toString() + ChatColor.LIGHT_PURPLE + "玩家宾果卡片");
 
             // Get all online players and populate the inventory
             for (Player player : Bukkit.getOnlinePlayers()) {
@@ -100,7 +100,7 @@ public class BingoPlayerGUIManager {
                         if (meta != null) {
                             meta.setDisplayName(ChatColor.GREEN + player.getName());
                             List<String> lore = new ArrayList<>();
-                            lore.add(ChatColor.GRAY + "Click to view " + player.getName() + "'s Bingo Card");
+                            lore.add(ChatColor.GRAY + "点击查看 " + player.getName() + " 的宾果卡片");
                             meta.setLore(lore);  // Set lore
                             playerHead.setItemMeta(meta);
 
@@ -120,7 +120,7 @@ public class BingoPlayerGUIManager {
         ItemStack backToMenu = new ItemStack(Material.CHEST);
         ItemMeta backToMenuMeta = backToMenu.getItemMeta();
         if (backToMenuMeta != null) {
-            backToMenuMeta.setDisplayName(ChatColor.RED + "Back to menu");
+            backToMenuMeta.setDisplayName(ChatColor.RED + "返回菜单");
             backToMenu.setItemMeta(backToMenuMeta);
         }
         inventory.setItem(53, backToMenu);  // Set the chest in the last slot

@@ -97,7 +97,7 @@ public class HubRegionListener implements Listener {
             if (item != null && item.getType() == Material.FILLED_MAP) {
                 ItemMeta meta = item.getItemMeta();
                 if (meta != null && meta.hasDisplayName()
-                        && meta.getDisplayName().contains("Bingo Card")) {
+                        && meta.getDisplayName().contains("宾果卡片")) {
                     player.getInventory().setItem(i, null);
                 }
             }

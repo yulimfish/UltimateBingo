@@ -3,26 +3,26 @@ version: '${project.version}'
 main: io.shantek.UltimateBingo
 api-version: '1.20'
 
-# This sets PlaceholderAPI as an optional dependency for your plugin.
+# 将 PlaceholderAPI 与 WorldGuard 设置为插件的可选依赖。
 softdepend: [PlaceholderAPI, WorldGuard]
 
 commands:
   bingo:
-    description: Opens your current bingo cards, add start or stop to start or stop bingo. Configure settings with settings
+    description: 打开当前宾果卡片；添加 start 或 stop 来开始或结束游戏；使用 settings 配置设置
 
 permissions:
   shantek.ultimatebingo.start:
-    description: Allows players to start games using the start command
+    description: 允许玩家使用 start 命令开始游戏
     default: op
 
   shantek.ultimatebingo.stop:
-    description: Allows players to stop games using the stop command
+    description: 允许玩家使用 stop 命令停止游戏
     default: op
 
   shantek.ultimatebingo.settings:
-    description: Allows players to add/remove items from the game
+    description: 允许玩家在游戏中添加/移除物品
     default: op
 
   shantek.ultimatebingo.signs:
-    description: Allows players to configure and start games with in game signs.
+    description: 允许玩家使用游戏内告示牌配置并开始游戏
     default: op

@@ -17,22 +17,22 @@ public class SettingsManager {
     }
 
     public Inventory createSettingsGUI(Player player){
-        Inventory settingsGUI = Bukkit.createInventory(player, 9, ChatColor.GOLD.toString() + ChatColor.BOLD + "Bingo Settings");
+        Inventory settingsGUI = Bukkit.createInventory(player, 9, ChatColor.GOLD.toString() + ChatColor.BOLD + "宾果设置");
 
         ItemStack easy = new ItemBuilder(Material.LIGHT_BLUE_STAINED_GLASS)
-                .withDisplayName(ChatColor.AQUA + "Add/Remove Easy Materials").build();
+                .withDisplayName(ChatColor.AQUA + "添加/移除简单材料").build();
 
         ItemStack normal = new ItemBuilder(Material.GREEN_STAINED_GLASS)
-                .withDisplayName(ChatColor.GREEN + "Add/Remove Normal Materials").build();
+                .withDisplayName(ChatColor.GREEN + "添加/移除普通材料").build();
 
         ItemStack hard = new ItemBuilder(Material.YELLOW_STAINED_GLASS)
-                .withDisplayName(ChatColor.YELLOW + "Add/Remove Hard Materials").build();
+                .withDisplayName(ChatColor.YELLOW + "添加/移除困难材料").build();
 
         ItemStack extreme = new ItemBuilder(Material.ORANGE_STAINED_GLASS)
-                .withDisplayName(ChatColor.GOLD + "Add/Remove Extreme Materials").build();
+                .withDisplayName(ChatColor.GOLD + "添加/移除极限材料").build();
 
         ItemStack impossible = new ItemBuilder(Material.RED_STAINED_GLASS)
-                .withDisplayName(ChatColor.RED + "Add/Remove Impossible Materials").build();
+                .withDisplayName(ChatColor.RED + "添加/移除不可能材料").build();
 
         settingsGUI.setItem(2, easy);
         settingsGUI.setItem(3, normal);
@@ -45,45 +45,45 @@ public class SettingsManager {
 
     public String getDifficultyDisplay(int difficulty){
         if (difficulty == 1){
-            return ChatColor.AQUA + "Add/Remove Easy Materials";
+            return ChatColor.AQUA + "添加/移除简单材料";
         }
 
         if (difficulty == 2){
-            return ChatColor.GREEN + "Add/Remove Normal Materials";
+            return ChatColor.GREEN + "添加/移除普通材料";
         }
 
         if (difficulty == 3){
-            return ChatColor.YELLOW + "Add/Remove Hard Materials";
+            return ChatColor.YELLOW + "添加/移除困难材料";
         }
 
         if (difficulty == 4){
-            return ChatColor.GOLD + "Add/Remove Extreme Materials";
+            return ChatColor.GOLD + "添加/移除极限材料";
         }
 
         if (difficulty == 5){
-            return ChatColor.RED + "Add/Remove Impossible Materials";
+            return ChatColor.RED + "添加/移除不可能材料";
         }
         return null;
     }
 
     public int getDifficultyInt(String display){
-        if (display.equals(ChatColor.AQUA + "Add/Remove Easy Materials")){
+        if (display.equals(ChatColor.AQUA + "添加/移除简单材料")){
             return 1;
         }
 
-        if (display.equals(ChatColor.GREEN + "Add/Remove Normal Materials")){
+        if (display.equals(ChatColor.GREEN + "添加/移除普通材料")){
             return 2;
         }
 
-        if (display.equals(ChatColor.YELLOW + "Add/Remove Hard Materials")){
+        if (display.equals(ChatColor.YELLOW + "添加/移除困难材料")){
             return 3;
         }
 
-        if (display.equals(ChatColor.GOLD + "Add/Remove Extreme Materials")){
+        if (display.equals(ChatColor.GOLD + "添加/移除极限材料")){
             return 4;
         }
 
-        if (display.equals(ChatColor.RED + "Add/Remove Impossible Materials")){
+        if (display.equals(ChatColor.RED + "添加/移除不可能材料")){
             return 5;
         }
         return 0;

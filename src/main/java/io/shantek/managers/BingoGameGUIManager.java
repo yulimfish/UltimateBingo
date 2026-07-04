@@ -31,56 +31,106 @@ public class BingoGameGUIManager {
 
 
     public Inventory createGameGUI(Player player) {
-        Inventory gameConfigInventory = Bukkit.createInventory(player, 9, ChatColor.LIGHT_PURPLE.toString() + ChatColor.BOLD + "Bingo Configuration");
-        gameConfigInventory.setItem(0, createItem(setGUIIcon("gamemode"), "Game mode", ultimateBingo.gameMode));
-        gameConfigInventory.setItem(1, createItem(setGUIIcon("difficulty"), "Difficulty", ultimateBingo.difficulty));
-        gameConfigInventory.setItem(2, createItem(setGUIIcon("cardsize"), "Card Size", ultimateBingo.cardSize));
+        Inventory gameConfigInventory = Bukkit.createInventory(player, 9, ChatColor.LIGHT_PURPLE.toString() + ChatColor.BOLD + "宾果配置");
+        gameConfigInventory.setItem(0, createItem(setGUIIcon("gamemode"), "游戏模式", ultimateBingo.gameMode));
+        gameConfigInventory.setItem(1, createItem(setGUIIcon("difficulty"), "难度", ultimateBingo.difficulty));
+        gameConfigInventory.setItem(2, createItem(setGUIIcon("cardsize"), "卡片大小", ultimateBingo.cardSize));
         if (!ultimateBingo.gameMode.equalsIgnoreCase("group")) {
-            gameConfigInventory.setItem(3, createItem(setGUIIcon("uniqueCard"), "Card Type", ultimateBingo.uniqueCard.toUpperCase()));
+            gameConfigInventory.setItem(3, createItem(setGUIIcon("uniqueCard"), "卡片类型", ultimateBingo.uniqueCard.toUpperCase()));
         } else {
             gameConfigInventory.setItem(3,null);
         }
-        gameConfigInventory.setItem(4, createItem(setGUIIcon("wincondition"), "Win Condition", ultimateBingo.fullCard.toUpperCase()));
-        gameConfigInventory.setItem(5, createItem(setGUIIcon("reveal"), "Reveal Cards", ultimateBingo.revealCards.toUpperCase()));
+        gameConfigInventory.setItem(4, createItem(setGUIIcon("wincondition"), "胜利条件", ultimateBingo.fullCard.toUpperCase()));
+        gameConfigInventory.setItem(5, createItem(setGUIIcon("reveal"), "公开卡片", ultimateBingo.revealCards.toUpperCase()));
 
         // Work out the game time to display
         String gameTimeString;
         if (ultimateBingo.gameTime == 0) {
-            gameTimeString = "Unlimited Time";
+            gameTimeString = "无时间限制";
         } else {
-            gameTimeString = ultimateBingo.gameTime + " minutes";
+            gameTimeString = ultimateBingo.gameTime + " 分钟";
         }
-        gameConfigInventory.setItem(6, createItem(Material.CLOCK, "Time Limit", gameTimeString));
+        gameConfigInventory.setItem(6, createItem(Material.CLOCK, "时间限制", gameTimeString));
 
         // Work out the game loadout to give the player
-        String gameLoadoutString = "Naked Kit";
+        String gameLoadoutString = "裸装";
         if (ultimateBingo.loadoutType == 1) {
-            gameLoadoutString = "Basic Kit";
+            gameLoadoutString = "基础装备";
         } else if (ultimateBingo.loadoutType == 2) {
-            gameLoadoutString = "Boat Kit";
+            gameLoadoutString = "船只装备";
         } else if (ultimateBingo.loadoutType == 3) {
-            gameLoadoutString = "Flying Kit";
+            gameLoadoutString = "飞行装备";
         } else if (ultimateBingo.loadoutType == 4) {
-            gameLoadoutString = "Archer Kit";
+            gameLoadoutString = "弓箭装备";
         } else if (ultimateBingo.loadoutType == 50) {
-            gameLoadoutString = "Random Kit";
+            gameLoadoutString = "随机装备";
         }
-        gameConfigInventory.setItem(7, createItem(setGUIIcon("loadout"), "Player Loadout", gameLoadoutString));
+        gameConfigInventory.setItem(7, createItem(setGUIIcon("loadout"), "玩家装备", gameLoadoutString));
         gameConfigInventory.setItem(8, createStartGameItem());
 
         return gameConfigInventory;
     }
 
     private ItemStack createItem(Material material, String prefix, String currentValue) {
+        String displayValue = translateValueForDisplay(prefix, currentValue);
         return new ItemBuilder(material)
-                .withDisplayName(ChatColor.BLUE + prefix + ": " + currentValue.toUpperCase())
-                .withLore(ChatColor.GRAY + "Click to toggle " + prefix.toLowerCase()).build();
+                .withDisplayName(ChatColor.BLUE + prefix + "：" + displayValue.toUpperCase())
+                .withLore(ChatColor.GRAY + "点击切换 " + prefix.toLowerCase()).build();
+    }
+
+    private String translateValueForDisplay(String prefix, String currentValue) {
+        String value = currentValue.toLowerCase();
+        return switch (prefix) {
+            case "游戏模式" -> switch (value) {
+                case "traditional" -> "传统";
+                case "speedrun" -> "速跑";
+                case "brewdash" -> "药水冲刺";
+                case "group" -> "团队";
+                case "teams" -> "队伍";
+                case "shuffle" -> "洗牌";
+                case "random" -> "随机";
+                default -> currentValue;
+            };
+            case "难度" -> switch (value) {
+                case "easy" -> "简单";
+                case "normal" -> "普通";
+                case "hard" -> "困难";
+                case "random" -> "随机";
+                default -> currentValue;
+            };
+            case "卡片大小" -> switch (value) {
+                case "small" -> "小";
+                case "medium" -> "中";
+                case "large" -> "大";
+                case "random" -> "随机";
+                default -> currentValue;
+            };
+            case "卡片类型" -> switch (value) {
+                case "unique" -> "唯一";
+                case "identical" -> "相同";
+                case "random" -> "随机";
+                default -> currentValue;
+            };
+            case "胜利条件" -> switch (value) {
+                case "full card" -> "满卡";
+                case "single row" -> "单行";
+                case "random" -> "随机";
+                default -> currentValue;
+            };
+            case "公开卡片" -> switch (value) {
+                case "enabled" -> "开启";
+                case "disabled" -> "关闭";
+                case "random" -> "随机";
+                default -> currentValue;
+            };
+            default -> currentValue;
+        };
     }
 
     private ItemStack createStartGameItem() {
         return new ItemBuilder(Material.ENDER_PEARL)
-                .withDisplayName(ChatColor.GREEN + "Start Game")
-                .withLore(ChatColor.GRAY + "Click to start the game").build();
+                .withDisplayName(ChatColor.GREEN + "开始游戏")
+                .withLore(ChatColor.GRAY + "点击开始游戏").build();
     }
 
     //region Toggle and update the GUI
@@ -127,48 +177,48 @@ public class BingoGameGUIManager {
 
     private void updateGUI(Player player) {
         Inventory currentInventory = player.getOpenInventory().getTopInventory();
-        ItemStack startGameItem = currentInventory.getItem(8);  // This is the "Start Game" item in slot 8
+        ItemStack startGameItem = currentInventory.getItem(8);  // This is the "开始游戏" item in slot 8
 
         if (startGameItem != null && startGameItem.hasItemMeta() && startGameItem.getItemMeta().hasDisplayName() &&
-                ChatColor.stripColor(startGameItem.getItemMeta().getDisplayName()).equals("Start Game")) {
+                ChatColor.stripColor(startGameItem.getItemMeta().getDisplayName()).equals("开始游戏")) {
             // The inventory is confirmed to be the Bingo Configuration GUI
             // Update existing inventory directly
-            currentInventory.setItem(0, createItem(setGUIIcon("gamemode"), "Game mode", ultimateBingo.gameMode));
-            currentInventory.setItem(1, createItem(setGUIIcon("difficulty"), "Difficulty", ultimateBingo.difficulty));
-            currentInventory.setItem(2, createItem(setGUIIcon("cardsize"), "Card Size", ultimateBingo.cardSize));
+            currentInventory.setItem(0, createItem(setGUIIcon("gamemode"), "游戏模式", ultimateBingo.gameMode));
+            currentInventory.setItem(1, createItem(setGUIIcon("difficulty"), "难度", ultimateBingo.difficulty));
+            currentInventory.setItem(2, createItem(setGUIIcon("cardsize"), "卡片大小", ultimateBingo.cardSize));
             if (!ultimateBingo.gameMode.equalsIgnoreCase("group")) {
-                currentInventory.setItem(3, createItem(setGUIIcon("uniqueCard"), "Card Type", ultimateBingo.uniqueCard.toUpperCase()));
+                currentInventory.setItem(3, createItem(setGUIIcon("uniqueCard"), "卡片类型", ultimateBingo.uniqueCard.toUpperCase()));
             } else {
                 currentInventory.setItem(3,null);
             }
-            currentInventory.setItem(4, createItem(setGUIIcon("wincondition"), "Win Condition", ultimateBingo.fullCard.toUpperCase()));
-            currentInventory.setItem(5, createItem(setGUIIcon("reveal"), "Reveal Cards", ultimateBingo.revealCards.toUpperCase()));
+            currentInventory.setItem(4, createItem(setGUIIcon("wincondition"), "胜利条件", ultimateBingo.fullCard.toUpperCase()));
+            currentInventory.setItem(5, createItem(setGUIIcon("reveal"), "公开卡片", ultimateBingo.revealCards.toUpperCase()));
 
             // Work out the game time to display
             String gameTimeString;
             if (ultimateBingo.gameTime == 0) {
-                gameTimeString = "Unlimited Time";
+                gameTimeString = "无时间限制";
             } else {
-                gameTimeString = ultimateBingo.gameTime + " minutes";
+                gameTimeString = ultimateBingo.gameTime + " 分钟";
             }
-            currentInventory.setItem(6, createItem(Material.CLOCK, "Time Limit", gameTimeString));
+            currentInventory.setItem(6, createItem(Material.CLOCK, "时间限制", gameTimeString));
 
             // Work out the game loadout to give the player
-            String gameLoadoutString = "Naked Kit";
+            String gameLoadoutString = "裸装";
             if (ultimateBingo.loadoutType == 1) {
-                gameLoadoutString = "Basic Kit";
+                gameLoadoutString = "基础装备";
             } else if (ultimateBingo.loadoutType == 2) {
-                gameLoadoutString = "Boat Kit";
+                gameLoadoutString = "船只装备";
             } else if (ultimateBingo.loadoutType == 3) {
-                gameLoadoutString = "Flying Kit";
+                gameLoadoutString = "飞行装备";
             } else if (ultimateBingo.loadoutType == 4) {
-                gameLoadoutString = "Archer Kit";
+                gameLoadoutString = "弓箭装备";
             } else if (ultimateBingo.loadoutType == 50) {
-                gameLoadoutString = "Random Kit";
+                gameLoadoutString = "随机装备";
             }
 
 
-            currentInventory.setItem(7, createItem(setGUIIcon("loadout"), "Player Loadout", gameLoadoutString));
+            currentInventory.setItem(7, createItem(setGUIIcon("loadout"), "玩家装备", gameLoadoutString));
 
             // Update all the game config signs if they exist
             ultimateBingo.bingoFunctions.updateAllSigns();

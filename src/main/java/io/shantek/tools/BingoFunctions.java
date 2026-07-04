@@ -27,6 +27,139 @@ import java.util.stream.Collectors;
 public class BingoFunctions
 {
     UltimateBingo ultimateBingo;
+
+    private static final Map<String, String> MATERIAL_CN = new HashMap<>();
+    private static final Map<String, String> POTION_CN = new HashMap<>();
+
+    static {
+        // 常用材料中文名
+        String[][] mats = {
+            {"IRON_INGOT","铁锭"},{"GOLD_INGOT","金锭"},{"DIAMOND","钻石"},{"EMERALD","绿宝石"},{"COAL","煤炭"},
+            {"REDSTONE","红石粉"},{"LAPIS_LAZULI","青金石"},{"NETHERITE_INGOT","下界合金锭"},{"COPPER_INGOT","铜锭"},
+            {"OAK_PLANKS","橡木木板"},{"SPRUCE_PLANKS","云杉木板"},{"BIRCH_PLANKS","白桦木板"},{"JUNGLE_PLANKS","丛林木板"},
+            {"ACACIA_PLANKS","金合欢木板"},{"DARK_OAK_PLANKS","深色橡木木板"},{"MANGROVE_PLANKS","红树木板"},
+            {"CHERRY_PLANKS","樱花木板"},{"BAMBOO_PLANKS","竹板"},{"CRIMSON_PLANKS","绯红木板"},{"WARPED_PLANKS","诡异木板"},
+            {"OAK_LOG","橡木原木"},{"SPRUCE_LOG","云杉原木"},{"BIRCH_LOG","白桦原木"},{"JUNGLE_LOG","丛林原木"},
+            {"ACACIA_LOG","金合欢原木"},{"DARK_OAK_LOG","深色橡木原木"},{"MANGROVE_LOG","红树原木"},{"CHERRY_LOG","樱花原木"},
+            {"STRIPPED_OAK_LOG","去皮橡木原木"},{"STRIPPED_SPRUCE_LOG","去皮云杉原木"},{"STRIPPED_BIRCH_LOG","去皮白桦原木"},
+            {"STRIPPED_JUNGLE_LOG","去皮丛林原木"},{"STRIPPED_ACACIA_LOG","去皮金合欢原木"},{"STRIPPED_DARK_OAK_LOG","去皮深色橡木原木"},
+            {"OAK_STAIRS","橡木楼梯"},{"OAK_BUTTON","橡木按钮"},{"BIRCH_DOOR","白桦木门"},{"OAK_SAPLING","橡树树苗"},
+            {"BIRCH_SAPLING","白桦树苗"},{"WHITE_WOOL","白色羊毛"},{"ROTTEN_FLESH","腐肉"},{"BONE","骨头"},
+            {"STRING","线"},{"FEATHER","羽毛"},{"CHICKEN","生鸡肉"},{"COOKED_CHICKEN","熟鸡肉"},{"LEATHER","皮革"},
+            {"BEEF","生牛肉"},{"COOKED_BEEF","牛排"},{"PORKCHOP","生猪排"},{"COOKED_PORKCHOP","熟猪排"},{"MUTTON","生羊肉"},
+            {"COOKED_MUTTON","熟羊肉"},{"RABBIT","生兔肉"},{"COOKED_RABBIT","熟兔肉"},{"COD","生鳕鱼"},{"COOKED_COD","熟鳕鱼"},
+            {"SALMON","生鲑鱼"},{"COOKED_SALMON","熟鲑鱼"},{"TROPICAL_FISH","热带鱼"},{"PUFFERFISH","河豚"},
+            {"SUGAR_CANE","甘蔗"},{"BARREL","木桶"},{"CHEST","箱子"},{"ACACIA_BOAT","金合欢木船"},{"SPRUCE_CHEST_BOAT","云杉木运输船"},
+            {"SPRUCE_BUTTON","云杉木按钮"},{"APPLE","苹果"},{"FLINT","燧石"},{"FLINT_AND_STEEL","打火石"},{"FLOWER_POT","花盆"},
+            {"BOOK","书"},{"CAULDRON","炼药锅"},{"LIGHTNING_ROD","避雷针"},{"RAIL","铁轨"},{"SNOW_BLOCK","雪块"},
+            {"COCOA_BEANS","可可豆"},{"GLASS","玻璃"},{"COAL_BLOCK","煤炭块"},{"GLASS_BOTTLE","玻璃瓶"},{"WATER_BUCKET","水桶"},
+            {"LAVA_BUCKET","熔岩桶"},{"BUCKET","铁桶"},{"MILK_BUCKET","奶桶"},{"POWERED_RAIL","动力铁轨"},{"DETECTOR_RAIL","探测铁轨"},
+            {"MINECART","矿车"},{"CHEST_MINECART","运输矿车"},{"FURNACE_MINECART","动力矿车"},{"HOPPER_MINECART","漏斗矿车"},
+            {"COMPASS","指南针"},{"CLOCK","时钟"},{"SPYGLASS","望远镜"},{"MAP","空地图"},{"FILLED_MAP","地图"},
+            {"WRITABLE_BOOK","书与笔"},{"WRITTEN_BOOK","成书"},{"ITEM_FRAME","物品展示框"},{"GLOW_ITEM_FRAME","荧光物品展示框"},
+            {"PAINTING","画"},{"BOWL","碗"},{"MUSHROOM_STEW","蘑菇煲"},{"RABBIT_STEW","兔肉煲"},{"BEETROOT_SOUP","甜菜汤"},
+            {"PUMPKIN_PIE","南瓜派"},{"CAKE","蛋糕"},{"BREAD","面包"},{"COOKIE","曲奇"},{"MELON_SLICE","西瓜片"},
+            {"SWEET_BERRIES","甜浆果"},{"GLOW_BERRIES","发光浆果"},{"EGG","鸡蛋"},{"SUGAR","糖"},{"HONEY_BOTTLE","蜂蜜瓶"},
+            {"HONEYCOMB","蜜脾"},{"INK_SAC","墨囊"},{"GLOW_INK_SAC","发光墨囊"},{"BRICK","红砖"},{"CLAY_BALL","黏土球"},
+            {"STONE","石头"},{"COBBLESTONE","圆石"},{"MOSSY_COBBLESTONE","苔石"},{"SMOOTH_STONE","平滑石头"},
+            {"STONE_BRICKS","石砖"},{"MOSSY_STONE_BRICKS","苔石砖"},{"CRACKED_STONE_BRICKS","裂纹石砖"},{"CHISELED_STONE_BRICKS","雕纹石砖"},
+            {"GRANITE","花岗岩"},{"DIORITE","闪长岩"},{"ANDESITE","安山岩"},{"DEEPSLATE","深板岩"},{"TUFF","凝灰岩"},{"CALCITE","方解石"},
+            {"DRIPSTONE_BLOCK","滴水石块"},{"POINTED_DRIPSTONE","滴水石锥"},{"SAND","沙子"},{"RED_SAND","红沙"},{"GRAVEL","沙砾"},
+            {"DIRT","泥土"},{"COARSE_DIRT","砂土"},{"ROOTED_DIRT","缠根泥土"},{"PODZOL","灰化土"},{"MYCELIUM","菌丝体"},
+            {"GRASS_BLOCK","草方块"},{"MOSS_BLOCK","苔藓块"},{"MOSS_CARPET","覆地苔藓"},{"FARMLAND","耕地"},{"CLAY","黏土"},
+            {"MUD","泥巴"},{"MUDDY_MANGROVE_ROOTS","沾泥的红树根"},{"PACKED_MUD","泥坯"},{"MUD_BRICKS","泥砖"},
+            {"SANDSTONE","砂岩"},{"RED_SANDSTONE","红砂岩"},{"CUT_SANDSTONE","切制砂岩"},{"CHISELED_SANDSTONE","雕纹砂岩"},
+            {"SMOOTH_SANDSTONE","平滑砂岩"},{"OBSIDIAN","黑曜石"},{"CRYING_OBSIDIAN","哭泣的黑曜石"},{"BEDROCK","基岩"},
+            {"NETHERRACK","下界岩"},{"NETHER_BRICK","下界砖"},{"NETHER_BRICKS","下界砖块"},{"SOUL_SAND","灵魂沙"},
+            {"SOUL_SOIL","灵魂土"},{"BASALT","玄武岩"},{"SMOOTH_BASALT","平滑玄武岩"},{"POLISHED_BASALT","磨制玄武岩"},
+            {"BLACKSTONE","黑石"},{"POLISHED_BLACKSTONE","磨制黑石"},{"GILDED_BLACKSTONE","镶金黑石"},{"END_STONE","末地石"},
+            {"END_STONE_BRICKS","末地石砖"},{"PRISMARINE","海晶石"},{"PRISMARINE_BRICKS","海晶石砖"},{"DARK_PRISMARINE","暗海晶石"},
+            {"SEA_LANTERN","海晶灯"},{"GLOWSTONE","荧石"},{"MAGMA_BLOCK","岩浆块"},{"BONE_BLOCK","骨块"},
+            {"DRIED_KELP_BLOCK","干海带块"},{"HAY_BLOCK","干草捆"},{"SPONGE","海绵"},{"WET_SPONGE","湿海绵"},
+            {"TORCH","火把"},{"SOUL_TORCH","灵魂火把"},{"REDSTONE_TORCH","红石火把"},{"LANTERN","灯笼"},{"SOUL_LANTERN","灵魂灯笼"},
+            {"END_ROD","末地烛"},{"GLOW_LICHEN","发光地衣"},{"SCULK","幽匿块"},{"SCULK_SENSOR","幽匿感测体"},
+            {"SCULK_CATALYST","幽匿催发体"},{"SCULK_SHRIEKER","幽匿尖啸体"},{"SCULK_VEIN","幽匿脉络"},
+            {"IRON_BLOCK","铁块"},{"GOLD_BLOCK","金块"},{"DIAMOND_BLOCK","钻石块"},{"EMERALD_BLOCK","绿宝石块"},
+            {"REDSTONE_BLOCK","红石块"},{"LAPIS_BLOCK","青金石块"},{"COPPER_BLOCK","铜块"},{"NETHERITE_BLOCK","下界合金块"},
+            {"AMETHYST_BLOCK","紫水晶块"},{"QUARTZ_BLOCK","石英块"},{"SMOOTH_QUARTZ","平滑石英块"},
+            {"CHISELED_QUARTZ_BLOCK","雕纹石英块"},{"QUARTZ_PILLAR","石英柱"},{"QUARTZ_STAIRS","石英楼梯"},{"BRICKS","红砖块"},
+            {"BOOKSHELF","书架"},{"CRAFTING_TABLE","工作台"},{"FURNACE","熔炉"},{"BLAST_FURNACE","高炉"},{"SMOKER","烟熏炉"},
+            {"CAMPFIRE","篝火"},{"SOUL_CAMPFIRE","灵魂篝火"},{"ANVIL","铁砧"},{"CHIPPED_ANVIL","开裂的铁砧"},
+            {"DAMAGED_ANVIL","损坏的铁砧"},{"LOOM","织布机"},{"SMITHING_TABLE","锻造台"},{"CARTOGRAPHY_TABLE","制图台"},
+            {"FLETCHING_TABLE","制箭台"},{"GRINDSTONE","砂轮"},{"COMPOSTER","堆肥桶"},{"JUKEBOX","唱片机"},{"NOTE_BLOCK","音符盒"},
+            {"DISPENSER","发射器"},{"DROPPER","投掷器"},{"HOPPER","漏斗"},{"PISTON","活塞"},{"STICKY_PISTON","黏性活塞"},
+            {"OBSERVER","侦测器"},{"REPEATER","红石中继器"},{"COMPARATOR","红石比较器"},{"DAYLIGHT_DETECTOR","阳光探测器"},
+            {"LECTERN","讲台"},{"TARGET","标靶"},{"TRIPWIRE_HOOK","绊线钩"},{"LEVER","拉杆"},{"STONE_BUTTON","石头按钮"},
+            {"POLISHED_BLACKSTONE_BUTTON","磨制黑石按钮"},{"BEE_NEST","蜂巢"},{"BEEHIVE","蜂箱"},{"HONEY_BLOCK","蜂蜜块"},
+            {"SLIME_BLOCK","黏液块"},{"MAGMA_CREAM","岩浆膏"},{"BLAZE_ROD","烈焰棒"},{"BLAZE_POWDER","烈焰粉"},
+            {"GHAST_TEAR","恶魂之泪"},{"NETHER_WART","下界疣"},{"SPIDER_EYE","蜘蛛眼"},{"FERMENTED_SPIDER_EYE","发酵蛛眼"},
+            {"GUNPOWDER","火药"},{"SLIME_BALL","黏液球"},{"ENDER_PEARL","末影珍珠"},{"ENDER_EYE","末影之眼"},
+            {"SHULKER_SHELL","潜影壳"},{"POPPED_CHORUS_FRUIT","爆裂紫颂果"},{"CHORUS_FRUIT","紫颂果"},{"DRAGON_BREATH","龙息"},
+            {"PHANTOM_MEMBRANE","幻翼膜"},{"NAUTILUS_SHELL","鹦鹉螺壳"},{"HEART_OF_THE_SEA","海洋之心"},{"TURTLE_EGG","海龟蛋"},
+            {"SCUTE","鳞甲"},{"NAME_TAG","命名牌"},{"SADDLE","鞍"},{"LEAD","拴绳"},{"BUNDLE","收纳袋"},
+            {"EXPERIENCE_BOTTLE","附魔之瓶"},{"END_CRYSTAL","末地水晶"},{"FIREWORK_ROCKET","烟花火箭"},{"FIREWORK_STAR","烟火之星"},
+            {"TOTEM_OF_UNDYING","不死图腾"},{"ELYTRA","鞘翅"},{"SHIELD","盾牌"},{"TRIDENT","三叉戟"},{"CROSSBOW","弩"},
+            {"BOW","弓"},{"ARROW","箭"},{"SPECTRAL_ARROW","光灵箭"},{"TIPPED_ARROW","药箭"},
+            {"WOODEN_SWORD","木剑"},{"STONE_SWORD","石剑"},{"IRON_SWORD","铁剑"},{"GOLDEN_SWORD","金剑"},
+            {"DIAMOND_SWORD","钻石剑"},{"NETHERITE_SWORD","下界合金剑"},{"WOODEN_AXE","木斧"},{"STONE_AXE","石斧"},
+            {"IRON_AXE","铁斧"},{"GOLDEN_AXE","金斧"},{"DIAMOND_AXE","钻石斧"},{"NETHERITE_AXE","下界合金斧"},
+            {"WOODEN_PICKAXE","木镐"},{"STONE_PICKAXE","石镐"},{"IRON_PICKAXE","铁镐"},{"GOLDEN_PICKAXE","金镐"},
+            {"DIAMOND_PICKAXE","钻石镐"},{"NETHERITE_PICKAXE","下界合金镐"},{"WOODEN_SHOVEL","木锹"},{"STONE_SHOVEL","石锹"},
+            {"IRON_SHOVEL","铁锹"},{"GOLDEN_SHOVEL","金锹"},{"DIAMOND_SHOVEL","钻石锹"},{"NETHERITE_SHOVEL","下界合金锹"},
+            {"WOODEN_HOE","木锄"},{"STONE_HOE","石锄"},{"IRON_HOE","铁锄"},{"GOLDEN_HOE","金锄"},{"DIAMOND_HOE","钻石锄"},
+            {"NETHERITE_HOE","下界合金锄"},{"LEATHER_HELMET","皮革帽子"},{"LEATHER_CHESTPLATE","皮革外套"},
+            {"LEATHER_LEGGINGS","皮革裤子"},{"LEATHER_BOOTS","皮革靴子"},{"CHAINMAIL_HELMET","锁链头盔"},
+            {"CHAINMAIL_CHESTPLATE","锁链胸甲"},{"CHAINMAIL_LEGGINGS","锁链护腿"},{"CHAINMAIL_BOOTS","锁链靴子"},
+            {"IRON_HELMET","铁头盔"},{"IRON_CHESTPLATE","铁胸甲"},{"IRON_LEGGINGS","铁护腿"},{"IRON_BOOTS","铁靴子"},
+            {"GOLDEN_HELMET","金头盔"},{"GOLDEN_CHESTPLATE","金胸甲"},{"GOLDEN_LEGGINGS","金护腿"},{"GOLDEN_BOOTS","金靴子"},
+            {"DIAMOND_HELMET","钻石头盔"},{"DIAMOND_CHESTPLATE","钻石胸甲"},{"DIAMOND_LEGGINGS","钻石护腿"},{"DIAMOND_BOOTS","钻石靴子"},
+            {"NETHERITE_HELMET","下界合金头盔"},{"NETHERITE_CHESTPLATE","下界合金胸甲"},{"NETHERITE_LEGGINGS","下界合金护腿"},
+            {"NETHERITE_BOOTS","下界合金靴子"},{"TURTLE_HELMET","海龟壳"},{"WOLF_ARMOR","狼铠"},
+            {"OAK_LEAVES","橡树树叶"},{"SPRUCE_LEAVES","云杉树叶"},{"BIRCH_LEAVES","白桦树叶"},{"JUNGLE_LEAVES","丛林树叶"},
+            {"ACACIA_LEAVES","金合欢树叶"},{"DARK_OAK_LEAVES","深色橡树树叶"},{"AZALEA_LEAVES","杜鹃树叶"},
+            {"FLOWERING_AZALEA_LEAVES","盛开的杜鹃树叶"},{"MANGROVE_LEAVES","红树树叶"},{"CHERRY_LEAVES","樱花树叶"},
+            {"LILY_PAD","睡莲"},{"VINE","藤蔓"},{"BIG_DRIPLEAF","大型垂滴叶"},{"SMALL_DRIPLEAF","小型垂滴叶"},
+            {"SEAGRASS","海草"},{"SEA_PICKLE","海泡菜"},{"KELP","海带"},{"BROWN_MUSHROOM","棕色蘑菇"},{"RED_MUSHROOM","红色蘑菇"},
+            {"CRIMSON_FUNGUS","绯红菌"},{"WARPED_FUNGUS","诡异菌"},{"CRIMSON_STEM","绯红菌柄"},{"WARPED_STEM","诡异菌柄"},
+            {"SHROOMLIGHT","菌光体"},{"NETHER_WART_BLOCK","下界疣块"},{"WARPED_WART_BLOCK","诡异疣块"},
+            {"RED_BED","红色床"},{"ORANGE_WOOL","橙色羊毛"},{"YELLOW_WOOL","黄色羊毛"},{"RED_WOOL","红色羊毛"},
+            {"BAMBOO","竹子"},{"PUMPKIN","南瓜"},{"BELL","钟"},{"CHAIN","锁链"},{"MELON","西瓜"},{"YELLOW_BED","黄色床"},
+            {"POPPY","虞美人"},{"SHORT_GRASS","矮草丛"},{"BLACK_WOOL","黑色羊毛"},{"BROWN_WOOL","棕色羊毛"},
+            {"GLASS_PANE","玻璃板"},{"GOLDEN_APPLE","金苹果"},{"BAMBOO_BLOCK","竹块"},{"DEAD_BUSH","枯萎的灌木"},
+            {"SPORE_BLOSSOM","孢子花"},{"PINK_PETALS","粉红色花簇"},{"RED_CONCRETE","红色混凝土"},{"YELLOW_CONCRETE","黄色混凝土"},
+            {"WHITE_CONCRETE","白色混凝土"},{"BLACK_CONCRETE","黑色混凝土"},{"JACK_O_LANTERN","南瓜灯"},{"STONECUTTER","切石机"},
+            {"BREWING_STAND","酿造台"},{"BRUSH","刷子"},{"GREEN_CARPET","绿色地毯"},{"CACTUS","仙人掌"},
+            {"TNT","TNT"},{"GOAT_HORN","山羊角"},{"BEETROOT","甜菜根"},{"AMETHYST_SHARD","紫水晶碎片"},
+            {"NETHERITE_SCRAP","下界合金碎片"},{"IRON_NUGGET","铁粒"},{"GOLD_NUGGET","金粒"},{"CHARCOAL","木炭"},
+            {"QUARTZ","下界石英"},{"COBBLED_DEEPSLATE","深板岩圆石"},{"POLISHED_DEEPSLATE","磨制深板岩"},
+            {"CRACKED_NETHER_BRICKS","裂纹下界砖块"},{"CHISELED_NETHER_BRICKS","雕纹下界砖块"},
+        };
+        for (String[] m : mats) MATERIAL_CN.put(m[0], m[1]);
+
+        // 药水效果中文名
+        String[][] pots = {
+            {"SPEED","迅捷"},{"SLOW","缓慢"},{"FAST_DIGGING","急迫"},{"SLOW_DIGGING","挖掘疲劳"},
+            {"INCREASE_DAMAGE","力量"},{"HEAL","瞬间治疗"},{"HARM","瞬间伤害"},{"JUMP","跳跃提升"},
+            {"CONFUSION","反胃"},{"REGENERATION","再生"},{"DAMAGE_RESISTANCE","抗性提升"},{"FIRE_RESISTANCE","防火"},
+            {"WATER_BREATHING","水下呼吸"},{"INVISIBILITY","隐身"},{"BLINDNESS","失明"},{"NIGHT_VISION","夜视"},
+            {"HUNGER","饥饿"},{"WEAKNESS","虚弱"},{"POISON","中毒"},{"WITHER","凋零"},{"HEALTH_BOOST","生命提升"},
+            {"ABSORPTION","伤害吸收"},{"SATURATION","饱和"},{"GLOWING","发光"},{"LEVITATION","飘浮"},
+            {"LUCK","幸运"},{"UNLUCK","霉运"},{"SLOW_FALLING","缓降"},{"CONDUIT_POWER","潮涌能量"},
+            {"DOLPHINS_GRACE","海豚的恩惠"},{"BAD_OMEN","不祥之兆"},{"HERO_OF_THE_VILLAGE","村庄英雄"},{"DARKNESS","黑暗"},
+        };
+        for (String[] p : pots) POTION_CN.put(p[0], p[1]);
+    }
+
+    public String getMaterialName(Material material) {
+        if (material == null) return "未知";
+        return MATERIAL_CN.getOrDefault(material.name(), material.name().toLowerCase().replace('_', ' '));
+    }
+
+    public String getPotionName(PotionEffectType type) {
+        if (type == null) return "未知";
+        return POTION_CN.getOrDefault(type.getName(), type.getName().toLowerCase().replace('_', ' '));
+    }
+
     public BingoFunctions(UltimateBingo ultimateBingo){
         this.ultimateBingo = ultimateBingo;
 
@@ -159,7 +292,7 @@ public class BingoFunctions
             if (item != null && item.getType() == Material.FILLED_MAP) {
                 ItemMeta meta = item.getItemMeta();
                 if (meta != null && meta.hasDisplayName() &&
-                        meta.getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
+                        meta.getDisplayName().equals(ChatColor.GOLD + "宾果卡片")) {
                     player.getInventory().setItem(i, null);
                 }
             }
@@ -172,7 +305,7 @@ public class BingoFunctions
         for (ItemStack item : inventory.getContents()) {
             if (item != null && item.getType() == Material.FILLED_MAP) {
                 ItemMeta meta = item.getItemMeta();
-                if (meta != null && meta.hasDisplayName() && meta.getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
+                if (meta != null && meta.hasDisplayName() && meta.getDisplayName().equals(ChatColor.GOLD + "宾果卡片")) {
                     return true; // Bingo card found
                 }
             }
@@ -205,11 +338,11 @@ public class BingoFunctions
     public Inventory cloneInventory(Inventory original) {
 
         // Store the string for the card type
-        String newCardInfo = ultimateBingo.currentUniqueCard ? "unique" : "identical";
-        newCardInfo += ultimateBingo.currentFullCard ? "/full card" : "/single row";
+        String newCardInfo = ultimateBingo.currentUniqueCard ? "唯一" : "相同";
+        newCardInfo += ultimateBingo.currentFullCard ? "/满卡" : "/单行";
         newCardInfo = "(" + newCardInfo + ")";
 
-        Inventory clone = Bukkit.createInventory(null, original.getSize(), ChatColor.GREEN.toString() + ChatColor.BOLD + "Bingo" + ChatColor.BLACK + " " + ChatColor.GOLD + newCardInfo);
+        Inventory clone = Bukkit.createInventory(null, original.getSize(), ChatColor.GREEN.toString() + ChatColor.BOLD + "宾果" + ChatColor.BLACK + " " + ChatColor.GOLD + newCardInfo);
         for (int i = 0; i < original.getSize(); i++) {
             ItemStack originalItem = original.getItem(i);
             if (originalItem != null) {
@@ -464,8 +597,8 @@ public class BingoFunctions
     public ItemStack createSpyglass() {
         ItemStack spyglass = new ItemStack(Material.SPYGLASS);
         ItemMeta meta = spyglass.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + "View Players Cards");
-        meta.setLore(Arrays.asList(ChatColor.GRAY + "Get a peek at other players' cards!"));
+        meta.setDisplayName(ChatColor.GOLD + "查看玩家卡片");
+        meta.setLore(Arrays.asList(ChatColor.GRAY + "偷偷看一眼其他玩家的卡片！"));
         spyglass.setItemMeta(meta);
         return spyglass;
     }
@@ -582,7 +715,7 @@ public class BingoFunctions
         int gameLength = minutes * 60 * 20;
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "The game will end in 3 minutes!");
+            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "游戏将在 3 分钟后结束！");
 
 
             for (Player p : Bukkit.getOnlinePlayers()) {
@@ -594,7 +727,7 @@ public class BingoFunctions
         }, threeMinutesLeft);
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "The game will end in 2 minutes!");
+            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "游戏将在 2 分钟后结束！");
             for (Player p : Bukkit.getOnlinePlayers()) {
 
                 if (ultimateBingo.bingoFunctions.isActivePlayer(p)) {
@@ -604,7 +737,7 @@ public class BingoFunctions
         }, twoMinutesLeft);
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "The game will end in 1 minute!");
+            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "游戏将在 1 分钟后结束！");
             for (Player p : Bukkit.getOnlinePlayers()) {
                 if (ultimateBingo.bingoFunctions.isActivePlayer(p)) {
                     p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 1.0f);
@@ -617,7 +750,7 @@ public class BingoFunctions
             final int finalI = i;  // Create a final variable to use inside the lambda
             int delay = gameLength - (i * 20);  // Calculate delay in ticks (20 ticks per second)
             Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-                ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "Game ends in " + finalI + " second" + (finalI == 1 ? "" : "s") + "!");
+                ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "游戏将在 " + finalI + " 秒后结束！");
                 for (Player player : Bukkit.getOnlinePlayers()) {
                     // Play a tone sound effect at the player's location
 
@@ -644,8 +777,8 @@ public class BingoFunctions
         int delayTicks = minutes * 60 * 20;
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "The game has now been running for " + minutes + " minutes.");
-            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + "You've just received a speed boost!");
+            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.GREEN + "游戏已运行 " + minutes + " 分钟.");
+            ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(ChatColor.YELLOW + "你获得了加速增益！");
             for (Player p : Bukkit.getOnlinePlayers()) {
 
                 if (ultimateBingo.bingoFunctions.isActivePlayer(p)) {
@@ -667,13 +800,11 @@ public class BingoFunctions
 
         // Determine the appropriate format based on the total minutes
         if (totalMinutes < 60) {
-            return totalMinutes + (totalMinutes == 1 ? " minute" : " minutes");
+            return totalMinutes + " 分钟";
         } else {
             long hours = totalMinutes / 60;
             long minutes = totalMinutes % 60;
-            return String.format("%d hour%s %d minute%s",
-                    hours, (hours == 1 ? "" : "s"),
-                    minutes, (minutes == 1 ? "" : "s"));
+            return String.format("%d 小时 %d 分钟", hours, minutes);
         }
     }
 
@@ -790,7 +921,7 @@ public class BingoFunctions
         PotionEffectType randomPotion = negativePotions.get(random.nextInt(negativePotions.size()));
 
         // Convert the potion name to a friendly format
-        String friendlyPotionName = randomPotion.getName().toLowerCase().replace('_', ' ').toUpperCase();
+        String friendlyPotionName = getPotionName(randomPotion).toUpperCase();
 
         // Loop through all online players
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -806,7 +937,7 @@ public class BingoFunctions
                 player.addPotionEffect(new PotionEffect(randomPotion, durationInSeconds * 20, 0));
 
                 // Create the subtitle message
-                String subtitle = ChatColor.RED + friendlyPotionName + " for " + durationInSeconds + " seconds!";
+                String subtitle = ChatColor.RED + friendlyPotionName + " 持续 " + durationInSeconds + " 秒后结束！";
 
                 // Send the title (empty) and subtitle to the player
                 player.sendTitle("", subtitle, 10, 70, 20);  // 10 ticks fade in, 70 ticks stay, 20 ticks fade out
@@ -819,7 +950,7 @@ public class BingoFunctions
         }
 
         // Create the subtitle message
-        String subtitle = ChatColor.GREEN + friendlyPotionName + " for " + durationInSeconds + " seconds!";
+        String subtitle = ChatColor.GREEN + friendlyPotionName + " 持续 " + durationInSeconds + " 秒后结束！";
 
         // Send the title (empty) and subtitle to the player
         excludedPlayer.sendTitle("", subtitle, 10, 70, 20);  // 10 ticks fade in, 70 ticks stay, 20 ticks fade out
@@ -974,7 +1105,7 @@ public class BingoFunctions
 
         if (teamSizes.isEmpty()) {
             // No existing players in any team, inform the player
-            player.sendMessage(net.md_5.bungee.api.ChatColor.RED + "No active teams to join.");
+            player.sendMessage(net.md_5.bungee.api.ChatColor.RED + "没有可加入的活跃队伍。");
             return;
         }
 
@@ -984,13 +1115,13 @@ public class BingoFunctions
                 .orElseThrow();
 
         playerTeamsMap.put(player.getUniqueId(), teamToJoin);
-        player.sendMessage(net.md_5.bungee.api.ChatColor.GREEN + "You have been assigned to the " + teamToJoin + " team!");
+        player.sendMessage(net.md_5.bungee.api.ChatColor.GREEN + "你已被分配到 " + teamToJoin + " 队干得漂亮！");
         notifyActivePlayers(player);
     }
 
     // Method to get the team of a player
     public String getTeam(Player player) {
-        return playerTeamsMap.getOrDefault(player.getUniqueId(), "None");
+        return playerTeamsMap.getOrDefault(player.getUniqueId(), "无");
     }
 
     // Method to get the team inventory of a player
@@ -1007,7 +1138,7 @@ public class BingoFunctions
     // Method to send a message to all active players with the list of active players and their teams
     public void notifyActivePlayers(Player playerToSend) {
         List<Player> activePlayers = new ArrayList<>();
-        StringBuilder messageBuilder = new StringBuilder("Active players in the game:\n");
+        StringBuilder messageBuilder = new StringBuilder("游戏中的活跃玩家：\n");
 
         // Build the list of active players and their teams
         Bukkit.getOnlinePlayers().forEach(player -> {
@@ -1303,17 +1434,17 @@ public class BingoFunctions
 
         String textMode = null;
         if (textToUpdate.equals("0")) {
-            textMode = "NAKED KIT";
+            textMode = "裸装";
         } else if (textToUpdate.equals("1")) {
-            textMode = "STARTER KIT";
+            textMode = "新手装备";
         } else if (textToUpdate.equals("2")) {
-            textMode = "BOAT KIT";
+            textMode = "船只装备";
         } else if (textToUpdate.equals("3")) {
-            textMode = "FLYING KIT";
+            textMode = "飞行装备";
         } else if (textToUpdate.equals("4")) {
-            textMode = "ARCHER KIT";
+            textMode = "弓箭装备";
         } else if (textToUpdate.equals("50")) {
-            textMode = "RANDOM";
+            textMode = "随机";
         }
 
         if (textMode != null) {
@@ -1338,15 +1469,15 @@ public class BingoFunctions
             Sign sign = (Sign) block.getState();
 
             if (setting.equalsIgnoreCase("WINCONDITION")) {
-                sign.setLine(1, "§6" + "WIN CONDITION");
+                sign.setLine(1, "§6" + "胜利条件");
             } else if (setting.equalsIgnoreCase("GAMEMODE")) {
-                sign.setLine(1, "§6" + "GAME MODE");
+                sign.setLine(1, "§6" + "游戏模式");
             } else if (setting.equalsIgnoreCase("CARDSIZE")) {
-                sign.setLine(1, "§6" + "CARD SIZE");
+                sign.setLine(1, "§6" + "卡片大小");
             } else if (setting.equalsIgnoreCase("REVEALCARDS")) {
-                sign.setLine(1, "§6" + "REVEAL CARDS");
+                sign.setLine(1, "§6" + "公开卡片");
             } else if (setting.equalsIgnoreCase("CARDTYPE")) {
-                sign.setLine(1, "§6" + "CARD TYPE");
+                sign.setLine(1, "§6" + "卡片类型");
             } else {
                 sign.setLine(1, "§6" + setting.toUpperCase());
             }
@@ -1368,25 +1499,25 @@ public class BingoFunctions
             Sign sign = (Sign) block.getState();
 
             if (setting.equalsIgnoreCase("WINCONDITION")) {
-                sign.setLine(1, "§6" + "WIN CONDITION");
+                sign.setLine(1, "§6" + "胜利条件");
             } else if (setting.equalsIgnoreCase("GAMEMODE")) {
-                sign.setLine(1, "§6" + "GAME MODE");
+                sign.setLine(1, "§6" + "游戏模式");
             } else if (setting.equalsIgnoreCase("CARDSIZE")) {
-                sign.setLine(1, "§6" + "CARD SIZE");
+                sign.setLine(1, "§6" + "卡片大小");
             } else if (setting.equalsIgnoreCase("REVEALCARDS")) {
-                sign.setLine(1, "§6" + "REVEAL CARDS");
+                sign.setLine(1, "§6" + "公开卡片");
             } else if (setting.equalsIgnoreCase("CARDTYPE")) {
-                sign.setLine(1, "§6" + "CARD TYPE");
+                sign.setLine(1, "§6" + "卡片类型");
             } else if (setting.equalsIgnoreCase("TIMELIMIT")) {
-                sign.setLine(1, "§6" + "TIME LIMIT");
+                sign.setLine(1, "§6" + "时间限制");
             } else {
-                sign.setLine(1, "§6" + "TIME LIMIT");
+                sign.setLine(1, "§6" + "时间限制");
             }
 
             if (textToUpdate.equalsIgnoreCase("0")) {
-                sign.setLine(2, "§f" + "UNLIMITED");
+                sign.setLine(2, "§f" + "无限制");
             } else {
-                sign.setLine(2, "§f" + textToUpdate.toUpperCase() + " MINS");
+                sign.setLine(2, "§f" + textToUpdate.toUpperCase() + " 分钟");
             }
 
 
@@ -1406,7 +1537,7 @@ public class BingoFunctions
             case "revealcards" -> ultimateBingo.revealCards;
             case "wincondition" -> ultimateBingo.fullCard;
             case "cardtype" -> ultimateBingo.uniqueCard;
-            case "timelimit" -> ultimateBingo.gameTime == 0 ? "Unlimited" : ultimateBingo.gameTime + " min";
+            case "timelimit" -> ultimateBingo.gameTime == 0 ? "无限制" : ultimateBingo.gameTime + " 分钟";
             default -> "";
         };
     }
@@ -1453,9 +1584,9 @@ public class BingoFunctions
         // Load button location correctly
         if (config.contains("button.startbutton")) {
             startButtonLocation = parseLocation(config.getString("button.startbutton"));
-            ultimateBingo.getLogger().info("Loaded start button at: " + startButtonLocation);
+            ultimateBingo.getLogger().info("已加载开始按钮位置：" + startButtonLocation);
         } else {
-            ultimateBingo.getLogger().warning("No start button found in config!");
+            ultimateBingo.getLogger().warning("配置中未找到开始按钮！");
         }
     }
 
@@ -1491,7 +1622,7 @@ public class BingoFunctions
         try {
             config.save(configFile);
         } catch (IOException e) {
-            ultimateBingo.getLogger().warning("Failed to save ingameconfig.yml");
+            ultimateBingo.getLogger().warning("保存 ingameconfig.yml 失败");
         }
     }
 

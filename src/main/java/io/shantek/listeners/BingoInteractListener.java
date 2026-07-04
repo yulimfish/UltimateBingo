@@ -21,7 +21,7 @@ public class BingoInteractListener implements Listener {
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         ItemStack item = event.getItemDrop().getItemStack();
         if (item.getType() == Material.FILLED_MAP && item.getItemMeta().hasDisplayName() &&
-                item.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
+                item.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "宾果卡片")) {
 
                 // Only cancel this is the game is active
                 if (ultimateBingo.bingoStarted && ultimateBingo.bingoFunctions.isPlayerInGame(event.getPlayer().getUniqueId())) {
@@ -40,12 +40,12 @@ public class BingoInteractListener implements Listener {
         if (ultimateBingo.bingoFunctions.canInteractWithCard(player)) {
 
             if (ultimateBingo.playedSinceReboot) {
-                // Check if the player is holding the "Bingo card"
-                if (itemInHand != null && itemInHand.getType() == Material.FILLED_MAP && itemInHand.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "Bingo Card")) {
+                // Check if the player is holding the "宾果卡片"
+                if (itemInHand != null && itemInHand.getType() == Material.FILLED_MAP && itemInHand.getItemMeta().getDisplayName().equals(ChatColor.GOLD + "宾果卡片")) {
 
                     if (ultimateBingo.currentGameMode.equalsIgnoreCase("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
                         if (!ultimateBingo.bingoFunctions.isPlayerInGame(player.getUniqueId())) {
-                            player.sendMessage(ChatColor.RED + "Type /bingo to join the game.");
+                            player.sendMessage(ChatColor.RED + "输入 /bingo 加入游戏。");
                         } else {
                             ultimateBingo.bingoCommand.openBingo(player);
                         }
@@ -53,7 +53,7 @@ public class BingoInteractListener implements Listener {
                     } else if (ultimateBingo.bingoCardActive || (!ultimateBingo.bingoManager.getBingoGUIs().isEmpty() && ultimateBingo.bingoManager.checkHasBingoCard(player))) {
                         ultimateBingo.bingoCommand.openBingo(player);
                     } else {
-                        player.sendMessage(ChatColor.RED + "Bingo hasn't started yet!");
+                        player.sendMessage(ChatColor.RED + "宾果尚未开始！");
                     }
 
                     event.setCancelled(true);
