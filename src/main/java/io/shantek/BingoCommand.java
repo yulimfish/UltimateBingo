@@ -536,8 +536,7 @@ public class BingoCommand implements CommandExecutor {
                         }
 
                         // Randomly teleport to a ground location in the world
-                        Bukkit.getScheduler().runTaskLater(plugin, () ->
-                            ultimateBingo.bingoFunctions.teleportToRandomGround(player), 10L);
+                        ultimateBingo.bingoFunctions.teleportToRandomGround(player);
 
                         // Add them to the player list
                         ultimateBingo.bingoFunctions.addPlayer(player.getUniqueId());
