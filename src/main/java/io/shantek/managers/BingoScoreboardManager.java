@@ -4,15 +4,17 @@ import io.shantek.UltimateBingo;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scoreboard.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
- * Manages per-player scoreboards showing bingo progress on the sidebar.
- * Created when player joins game, removed when they leave or game ends.
+ * Sidebar scoreboard showing bingo rankings.
+ * Individual modes: top player completion counts.
+ * Teams mode: team rankings.
+ * Group mode: shared progress.
  */
 public class BingoScoreboardManager {
 
@@ -23,113 +25,206 @@ public class BingoScoreboardManager {
         this.plugin = plugin;
     }
 
-    /** Show the bingo scoreboard for a player. */
     public void showBoard(Player player) {
         ScoreboardManager manager = Bukkit.getScoreboardManager();
         if (manager == null) return;
 
         Scoreboard board = manager.getNewScoreboard();
         Objective obj = board.registerNewObjective("bingo", "dummy",
-                ChatColor.GOLD + "" + ChatColor.BOLD + "宾果进度");
+                ChatColor.GOLD + "" + ChatColor.BOLD + "宾果排行榜");
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
 
-        updateBoardContent(player, obj);
-        player.setScoreboard(board);
+        rebuildAll();
         playerBoards.put(player.getUniqueId(), board);
     }
 
-    /** Refresh the scoreboard content for a player. */
+    /** Called when any player completes an item — refreshes ALL boards. */
+    public void updateAllBoards() {
+        rebuildAll();
+    }
+
+    /** Called when a single player's board should refresh (same as all, ranking is global). */
     public void updateBoard(Player player) {
-        Scoreboard board = playerBoards.get(player.getUniqueId());
-        if (board == null) return;
-
-        Objective obj = board.getObjective("bingo");
-        if (obj == null) return;
-
-        // Clear old entries
-        for (String entry : board.getEntries()) {
-            board.resetScores(entry);
-        }
-
-        updateBoardContent(player, obj);
+        rebuildAll();
     }
 
-    private void updateBoardContent(Player player, Objective obj) {
-        org.bukkit.inventory.Inventory gui = getPlayerGUI(player);
-        int completed = 0;
-        int total = 0;
-
-        if (gui != null) {
-            int[] slots = plugin.bingoManager.getSlots();
-            if (slots != null) {
-                total = slots.length;
-                for (int slot : slots) {
-                    org.bukkit.inventory.ItemStack item = gui.getItem(slot);
-                    if (item != null && item.getType() == plugin.tickedItemMaterial) {
-                        completed++;
-                    }
-                }
-            }
-        }
-
-        int remaining = total - completed;
-        String progress = ChatColor.WHITE + "已完成: " + ChatColor.GREEN + completed
-                + ChatColor.WHITE + " / " + total
-                + "  (" + ChatColor.YELLOW + remaining + ChatColor.WHITE + " 剩余)";
-
-        setScore(obj, ChatColor.GREEN + "进度", 5);
-        setScore(obj, progress, 4);
-        setScore(obj, " ", 3);
-
-        // Time remaining (if game has a time limit)
-        if (plugin.gameTime > 0 && plugin.gameStartTime > 0) {
-            long elapsed = System.currentTimeMillis() - plugin.gameStartTime;
-            long remainingMs = (long) plugin.gameTime * 60 * 1000 - elapsed;
-            if (remainingMs > 0) {
-                long remainingMin = remainingMs / 60000;
-                long remainingSec = (remainingMs % 60000) / 1000;
-                String time = ChatColor.WHITE + "剩余时间: " + ChatColor.AQUA
-                        + remainingMin + "分" + remainingSec + "秒";
-                setScore(obj, time, 2);
-            }
-        }
-
-        setScore(obj, ChatColor.GRAY + "UltimateBingo", 0);
-    }
-
-    private void setScore(Objective obj, String text, int score) {
-        Score s = obj.getScore(text);
-        s.setScore(score);
-    }
-
-    private org.bukkit.inventory.Inventory getPlayerGUI(Player player) {
-        if (plugin.currentGameMode.equalsIgnoreCase("group")) {
-            return plugin.groupInventory;
-        }
-        if (plugin.currentGameMode.equalsIgnoreCase("teams")) {
-            return plugin.bingoFunctions.getTeamInventory(player);
-        }
-        Map<UUID, org.bukkit.inventory.Inventory> guis = plugin.bingoManager.getBingoGUIs();
-        if (guis != null) {
-            return guis.get(player.getUniqueId());
-        }
-        return null;
-    }
-
-    /** Hide and remove the scoreboard for a player. */
     public void hideBoard(Player player) {
         playerBoards.remove(player.getUniqueId());
-        player.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
+        Scoreboard main = Bukkit.getScoreboardManager().getMainScoreboard();
+        if (player.isOnline()) player.setScoreboard(main);
     }
 
-    /** Remove all scoreboards (called on game end). */
     public void hideAllBoards() {
+        Scoreboard main = Bukkit.getScoreboardManager().getMainScoreboard();
         for (UUID id : playerBoards.keySet()) {
             Player p = Bukkit.getPlayer(id);
-            if (p != null && p.isOnline()) {
-                p.setScoreboard(Bukkit.getScoreboardManager().getMainScoreboard());
-            }
+            if (p != null && p.isOnline()) p.setScoreboard(main);
         }
         playerBoards.clear();
     }
+
+    // ─── internal ────────────────────────────────────────
+
+    private void rebuildAll() {
+        // Gather data once
+        List<String> lines = buildLines();
+
+        for (Map.Entry<UUID, Scoreboard> entry : playerBoards.entrySet()) {
+            Player p = Bukkit.getPlayer(entry.getKey());
+            if (p == null || !p.isOnline()) continue;
+
+            Scoreboard board = entry.getValue();
+            Objective obj = board.getObjective("bingo");
+            if (obj == null) continue;
+
+            // Clear old entries
+            for (String s : board.getEntries()) board.resetScores(s);
+
+            // Write new entries (higher score = higher position on sidebar)
+            int score = lines.size();
+            for (String line : lines) {
+                obj.getScore(line).setScore(score--);
+            }
+
+            p.setScoreboard(board);
+        }
+    }
+
+    private List<String> buildLines() {
+        boolean isTeams  = plugin.currentGameMode.equalsIgnoreCase("teams");
+        boolean isGroup  = plugin.currentGameMode.equalsIgnoreCase("group");
+
+        if (isGroup) return buildGroupLines();
+        if (isTeams)  return buildTeamLines();
+        return buildIndividualLines();
+    }
+
+    // ── individual ranking ────────────────────────────────
+
+    private List<String> buildIndividualLines() {
+        List<String> out = new ArrayList<>();
+        int totalItems = getTotalItems();
+
+        // Collect all active players and their completion counts
+        List<PlayerScore> scores = new ArrayList<>();
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (!plugin.bingoFunctions.isActivePlayer(p)) continue;
+            Inventory gui = getPlayerGUI(p);
+            int done = countCompleted(gui);
+            scores.add(new PlayerScore(p.getName(), done));
+        }
+        scores.sort((a, b) -> Integer.compare(b.done, a.done));
+
+        int rank = 1;
+        for (int i = 0; i < scores.size() && i < 10; i++) {
+            PlayerScore ps = scores.get(i);
+            String prefix = rank <= 3 ? ("§e" + rank + ". ") : ("§7" + rank + ". ");
+            String line = prefix + ps.name + "  §a" + ps.done + "§7/" + totalItems;
+            // Trim long names to fit
+            if (line.length() > 40) {
+                String shortName = ps.name.length() > 12 ? ps.name.substring(0, 11) + "…" : ps.name;
+                line = prefix + shortName + "  §a" + ps.done + "§7/" + totalItems;
+            }
+            out.add(line);
+            rank++;
+        }
+
+        if (scores.isEmpty()) {
+            out.add(ChatColor.GRAY + "暂无玩家");
+        }
+
+        // Spacer + time
+        out.add(" ");
+        out.add(buildTimeLine());
+
+        return out;
+    }
+
+    // ── team ranking ──────────────────────────────────────
+
+    private List<String> buildTeamLines() {
+        List<String> out = new ArrayList<>();
+        int totalItems = getTotalItems();
+
+        List<TeamScore> teams = new ArrayList<>();
+        teams.add(new TeamScore("§c红队", countCompleted(plugin.redTeamInventory)));
+        teams.add(new TeamScore("§e黄队", countCompleted(plugin.yellowTeamInventory)));
+        teams.add(new TeamScore("§9蓝队", countCompleted(plugin.blueTeamInventory)));
+        teams.sort((a, b) -> Integer.compare(b.done, a.done));
+
+        int rank = 1;
+        for (TeamScore ts : teams) {
+            String prefix = (rank == 1 ? "§6§l" : rank == 2 ? "§e" : "§7") + rank + ". ";
+            out.add(prefix + ts.name + "  §a" + ts.done + "§7/" + totalItems);
+            rank++;
+        }
+
+        out.add(" ");
+        out.add(buildTimeLine());
+
+        return out;
+    }
+
+    // ── group progress ────────────────────────────────────
+
+    private List<String> buildGroupLines() {
+        List<String> out = new ArrayList<>();
+        int totalItems = getTotalItems();
+        int done = countCompleted(plugin.groupInventory);
+
+        out.add(ChatColor.GRAY + "团队进度");
+        out.add("§a" + done + " §7/ " + totalItems);
+        out.add("§7(" + (totalItems - done) + " 剩余)");
+        out.add(" ");
+        out.add(buildTimeLine());
+
+        return out;
+    }
+
+    // ── helpers ───────────────────────────────────────────
+
+    private String buildTimeLine() {
+        if (plugin.gameTime > 0 && plugin.gameStartTime > 0) {
+            long remaining = (long) plugin.gameTime * 60000
+                    - (System.currentTimeMillis() - plugin.gameStartTime);
+            if (remaining > 0) {
+                long min = remaining / 60000;
+                long sec = (remaining % 60000) / 1000;
+                return ChatColor.WHITE + "剩余: " + ChatColor.AQUA + min + "分" + sec + "秒";
+            }
+        }
+        long elapsed = plugin.bingoStarted
+                ? (System.currentTimeMillis() - plugin.gameStartTime) / 1000
+                : 0;
+        return ChatColor.GRAY + "已过: " + (elapsed / 60) + "分" + (elapsed % 60) + "秒";
+    }
+
+    private int countCompleted(Inventory gui) {
+        if (gui == null) return 0;
+        int[] slots = plugin.bingoManager.getSlots();
+        if (slots == null) return 0;
+        int count = 0;
+        for (int slot : slots) {
+            ItemStack item = gui.getItem(slot);
+            if (item != null && item.getType() == plugin.tickedItemMaterial) count++;
+        }
+        return count;
+    }
+
+    private int getTotalItems() {
+        int[] slots = plugin.bingoManager.getSlots();
+        return slots != null ? slots.length : 0;
+    }
+
+    private Inventory getPlayerGUI(Player player) {
+        if (plugin.currentGameMode.equalsIgnoreCase("group")) return plugin.groupInventory;
+        if (plugin.currentGameMode.equalsIgnoreCase("teams")) return plugin.bingoFunctions.getTeamInventory(player);
+        Map<UUID, Inventory> guis = plugin.bingoManager.getBingoGUIs();
+        return guis != null ? guis.get(player.getUniqueId()) : null;
+    }
+
+    // ── data classes ──────────────────────────────────────
+
+    private record PlayerScore(String name, int done) {}
+    private record TeamScore(String name, int done) {}
 }
