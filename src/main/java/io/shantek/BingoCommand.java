@@ -391,6 +391,10 @@ public class BingoCommand implements CommandExecutor {
                         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
                             player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + String.valueOf(count), "", 10, 20, 10);
                             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 1.0f);
+                            // Teleport to random ground when "3" shows so players are in position by GO
+                            if (count == 3) {
+                                ultimateBingo.bingoFunctions.teleportToRandomGround(player);
+                            }
                         }, 200 + 30 * (3 - count)); // Countdown starts at 5 seconds
 
                     }
@@ -521,9 +525,6 @@ public class BingoCommand implements CommandExecutor {
                         if (ultimateBingo.currentGameMode.equals("speedrun") || ultimateBingo.currentGameMode.equals("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
                             player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1, false, false, true));
                         }
-
-                        // Randomly teleport to a ground location in the world
-                        ultimateBingo.bingoFunctions.teleportToRandomGround(player);
 
                         // Add them to the player list
                         ultimateBingo.bingoFunctions.addPlayer(player.getUniqueId());
