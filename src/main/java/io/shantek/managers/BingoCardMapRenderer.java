@@ -130,22 +130,29 @@ public class BingoCardMapRenderer extends MapRenderer {
     /* ========================================================= */
 
     private void drawBase(MapCanvas canvas) {
+        // Always draw the generated parchment background first
+        byte[] parchment = plugin.getCachedParchmentBase();
+        if (parchment != null) {
+            for (int i = 0; i < parchment.length; i++) {
+                canvas.setPixel(i % 128, i / 128, parchment[i]);
+            }
+        } else {
+            // Fallback: solid parchment color
+            byte color = MapPalette.matchColor(222, 204, 190);
+            for (int y = 0; y < 128; y++) {
+                for (int x = 0; x < 128; x++) {
+                    canvas.setPixel(x, y, color);
+                }
+            }
+        }
 
+        // Overlay custom image on top (if present), respecting transparency mask
         byte[] overlay = plugin.getCachedOverlayBase();
         boolean[] mask = plugin.getCachedOverlayMask();
-
         if (overlay != null && mask != null) {
             for (int i = 0; i < overlay.length; i++) {
                 if (!mask[i]) continue;
                 canvas.setPixel(i % 128, i / 128, overlay[i]);
-            }
-            return;
-        }
-
-        byte parchment = MapPalette.matchColor(222, 204, 190);
-        for (int y = 0; y < 128; y++) {
-            for (int x = 0; x < 128; x++) {
-                canvas.setPixel(x, y, parchment);
             }
         }
     }

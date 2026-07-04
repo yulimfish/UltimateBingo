@@ -151,14 +151,42 @@ public class BingoMapManager {
     }
     
     /**
-     * Get a player's bingo card items
+     * Get a player's bingo card items.
+     * For group/teams mode, extracts items from the shared inventory.
      */
     public List<ItemStack> getPlayerCard(Player player) {
+        // Group mode: extract from shared groupInventory
+        if (plugin.currentGameMode.equalsIgnoreCase("group")) {
+            return extractCardItems(plugin.groupInventory);
+        }
+        // Teams mode: extract from player's team inventory
+        if (plugin.currentGameMode.equalsIgnoreCase("teams")) {
+            org.bukkit.inventory.Inventory teamInv = plugin.bingoFunctions.getTeamInventory(player);
+            return extractCardItems(teamInv);
+        }
+        // Individual mode: use per-player card map
         Map<UUID, List<ItemStack>> cards = plugin.bingoManager.getPlayerBingoCards();
         if (cards == null) {
             return null;
         }
         return cards.get(player.getUniqueId());
+    }
+
+    /**
+     * Extract bingo card items from a GUI inventory using the slot pattern.
+     */
+    private List<ItemStack> extractCardItems(org.bukkit.inventory.Inventory inv) {
+        if (inv == null) return null;
+        List<ItemStack> items = new java.util.ArrayList<>();
+        int[] slots = plugin.bingoManager.getSlots();
+        if (slots == null) return null;
+        for (int slot : slots) {
+            ItemStack item = inv.getItem(slot);
+            if (item != null) {
+                items.add(item);
+            }
+        }
+        return items.isEmpty() ? null : items;
     }
     
     /**
