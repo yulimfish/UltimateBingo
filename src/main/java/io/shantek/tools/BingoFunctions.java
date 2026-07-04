@@ -718,6 +718,7 @@ public class BingoFunctions
 
             Location loc = new Location(world, dx + 0.5, y + 1, dz + 0.5);
             if (isSafeLocation(loc)) {
+                player.sendMessage(ChatColor.YELLOW + "正在传送，服务器可能会短暂卡顿……");
                 loc.setYaw(rng.nextFloat() * 360);
                 loc.setPitch(0);
                 player.teleport(loc);
