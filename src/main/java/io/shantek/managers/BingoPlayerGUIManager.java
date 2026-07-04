@@ -5,7 +5,6 @@ import io.shantek.tools.ItemBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -67,12 +66,10 @@ public class BingoPlayerGUIManager {
     }
 
     /**
-     * Creates the team selection GUI with 3 wool columns and player heads.
-     * Layout:
-     *   Red  : wool@10, heads@19,28,37
-     *   Yellow: wool@12, heads@21,30,39
-     *   Blue : wool@14, heads@23,32,41
-     *   Back button: @49
+     * Creates the team selection GUI.
+     * 3 wool columns (red/yellow/blue) showing team member names in lore.
+     * No player heads to avoid Mojang API calls.
+     * Back button at bottom center.
      */
     public Inventory createTeamSelectionGUI(Player player) {
         Inventory inv = Bukkit.createInventory(player, 54,
@@ -82,29 +79,26 @@ public class BingoPlayerGUIManager {
         List<String> yellowPlayers = getTeamPlayerNames("yellow");
         List<String> bluePlayers   = getTeamPlayerNames("blue");
 
-        // Red column
+        // Red column - wool at 10
         inv.setItem(10, createTeamWool(Material.RED_WOOL, ChatColor.RED + "§l红队",
-                redPlayers.size() + " 名玩家", ChatColor.GRAY + "点击加入红队"));
-        fillPlayerHeads(inv, redPlayers, new int[]{19, 28, 37}, ChatColor.RED);
+                redPlayers, ChatColor.GRAY + "点击加入红队"));
 
-        // Yellow column
-        inv.setItem(12, createTeamWool(Material.YELLOW_WOOL, ChatColor.YELLOW + "§l黄队",
-                yellowPlayers.size() + " 名玩家", ChatColor.GRAY + "点击加入黄队"));
-        fillPlayerHeads(inv, yellowPlayers, new int[]{21, 30, 39}, ChatColor.YELLOW);
+        // Yellow column - wool at 13 (centered between red and blue)
+        inv.setItem(13, createTeamWool(Material.YELLOW_WOOL, ChatColor.YELLOW + "§l黄队",
+                yellowPlayers, ChatColor.GRAY + "点击加入黄队"));
 
-        // Blue column
-        inv.setItem(14, createTeamWool(Material.BLUE_WOOL, ChatColor.BLUE + "§l蓝队",
-                bluePlayers.size() + " 名玩家", ChatColor.GRAY + "点击加入蓝队"));
-        fillPlayerHeads(inv, bluePlayers, new int[]{23, 32, 41}, ChatColor.BLUE);
+        // Blue column - wool at 16
+        inv.setItem(16, createTeamWool(Material.BLUE_WOOL, ChatColor.BLUE + "§l蓝队",
+                bluePlayers, ChatColor.GRAY + "点击加入蓝队"));
 
-        // Decorative glass border top and bottom
+        // Decorative glass border
         ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
         ItemMeta glassMeta = glass.getItemMeta();
         if (glassMeta != null) {
             glassMeta.setDisplayName(" ");
             glass.setItemMeta(glassMeta);
         }
-        for (int i : new int[]{0,1,2,3,4,5,6,7,8, 45,46,47,48,50,51,52,53}) {
+        for (int i : new int[]{0,1,2,3,4,5,6,7,8, 45,46,47,48,49,50,51,52,53}) {
             inv.setItem(i, glass);
         }
 
@@ -121,46 +115,43 @@ public class BingoPlayerGUIManager {
         return inv;
     }
 
-    private ItemStack createTeamWool(Material wool, String title, String count, String action) {
+    private ItemStack createTeamWool(Material wool, String title, List<String> players, String action) {
         ItemStack item = new ItemStack(wool);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(title);
-            meta.setLore(Arrays.asList(
-                    ChatColor.GRAY + count,
-                    action
-            ));
+            List<String> lore = new ArrayList<>();
+            lore.add(ChatColor.GRAY.toString() + players.size() + " 名玩家");
+            if (!players.isEmpty()) {
+                lore.add(ChatColor.DARK_GRAY + String.join(", ", players));
+            }
+            lore.add(action);
+            meta.setLore(lore);
             item.setItemMeta(meta);
         }
         return item;
     }
 
+    /**
+     * Returns player names belonging to a team.
+     * Checks both playerTeamsMap (post-assignment) and manualTeamAssignments (pre-game).
+     */
     private List<String> getTeamPlayerNames(String teamColor) {
         List<String> names = new ArrayList<>();
         if (ultimateBingo.bingoFunctions == null) return names;
         for (Player p : Bukkit.getOnlinePlayers()) {
             if (ultimateBingo.bingoFunctions.isActivePlayer(p)) {
                 String team = ultimateBingo.bingoFunctions.getTeam(p);
-                if (team != null && team.equalsIgnoreCase(teamColor)) {
-                    names.add(p.getName());
+                String manualTeam = ultimateBingo.bingoFunctions.getManualTeam(p.getUniqueId());
+                if ((team != null && team.equalsIgnoreCase(teamColor))
+                        || (manualTeam != null && manualTeam.equalsIgnoreCase(teamColor))) {
+                    if (!names.contains(p.getName())) {
+                        names.add(p.getName());
+                    }
                 }
             }
         }
         return names;
-    }
-
-    private void fillPlayerHeads(Inventory inv, List<String> playerNames, int[] slots, ChatColor color) {
-        for (int i = 0; i < slots.length && i < playerNames.size(); i++) {
-            ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-            SkullMeta meta = (SkullMeta) head.getItemMeta();
-            if (meta != null) {
-                OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerNames.get(i));
-                meta.setOwningPlayer(offlinePlayer);
-                meta.setDisplayName(color + playerNames.get(i));
-                head.setItemMeta(meta);
-            }
-            inv.setItem(slots[i], head);
-        }
     }
 
     public Inventory setupPlayersBingoCardsInventory() {
