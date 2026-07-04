@@ -73,9 +73,157 @@ public class BingoGameGUIManager {
 
     private ItemStack createItem(Material material, String prefix, String currentValue) {
         String displayValue = translateValueForDisplay(prefix, currentValue);
+        String[] lore = getValueLore(prefix, currentValue);
         return new ItemBuilder(material)
                 .withDisplayName(ChatColor.BLUE + prefix + "：" + displayValue.toUpperCase())
-                .withLore(ChatColor.GRAY + "点击切换 " + prefix.toLowerCase()).build();
+                .withLore(lore).build();
+    }
+
+    /**
+     * Returns descriptive lore lines for each setting value,
+     * explaining what the current option does.
+     */
+    private String[] getValueLore(String prefix, String currentValue) {
+        String value = currentValue.toLowerCase();
+        String toggle = ChatColor.GRAY + "点击切换";
+
+        return switch (prefix) {
+            case "游戏模式" -> switch (value) {
+                case "traditional" -> new String[]{
+                    "§7传统宾果 - 收集物品勾选卡片",
+                    "§7需要自己管理饥饿和生命值",
+                    toggle};
+                case "speedrun" -> new String[]{
+                    "§7速跑模式 - 每勾选一项",
+                    "§a恢复生命 §e恢复饥饿 §d恢复烟花火箭",
+                    toggle};
+                case "brewdash" -> new String[]{
+                    "§7药水冲刺 - 每勾选一项",
+                    "§c给对手施加随机负面药水",
+                    "§7持续时间：简单 20s / 普通 40s / 困难 60s",
+                    toggle};
+                case "group" -> new String[]{
+                    "§7团队合作 - 所有玩家共享一张卡片",
+                    "§a齐心协力完成宾果！",
+                    toggle};
+                case "teams" -> new String[]{
+                    "§7队伍对战 - 分红/蓝/黄三队",
+                    "§7站在对应颜色羊毛上选择队伍",
+                    "§7各队拥有独立卡片，互相比拼",
+                    toggle};
+                case "shuffle" -> new String[]{
+                    "§7洗牌模式 - 卡片定时自动打乱",
+                    "§7物品位置和部分物品会变化",
+                    "§7间隔可在 config.yml 中设置",
+                    toggle};
+                case "random" -> new String[]{
+                    "§7随机选择一种游戏模式",
+                    "§d让命运决定一切！",
+                    toggle};
+                default -> new String[]{toggle};
+            };
+            case "难度" -> switch (value) {
+                case "easy" -> new String[]{
+                    "§7简单 - 15 简单 + 15 普通物品",
+                    "§a适合新手入门",
+                    toggle};
+                case "normal" -> new String[]{
+                    "§7普通 - 5 简单 + 10 普通 + 10 困难 + 5 极限",
+                    "§e中等挑战",
+                    toggle};
+                case "hard" -> new String[]{
+                    "§7困难 - 5 普通 + 10 困难 + 10 极限 + 5 不可能",
+                    "§c高难度挑战",
+                    toggle};
+                case "random" -> new String[]{
+                    "§7随机选择难度",
+                    toggle};
+                default -> new String[]{toggle};
+            };
+            case "卡片大小" -> switch (value) {
+                case "small" -> new String[]{
+                    "§7小卡片 §f3×3 §7- 共 9 个物品",
+                    toggle};
+                case "medium" -> new String[]{
+                    "§7中卡片 §f4×4 §7- 共 16 个物品",
+                    toggle};
+                case "large" -> new String[]{
+                    "§7大卡片 §f5×5 §7- 共 25 个物品",
+                    toggle};
+                case "random" -> new String[]{
+                    "§7随机选择卡片大小",
+                    toggle};
+                default -> new String[]{toggle};
+            };
+            case "卡片类型" -> switch (value) {
+                case "unique" -> new String[]{
+                    "§7唯一卡片 - 每位玩家物品排列不同",
+                    "§7从稍大的物品池中独立洗牌生成",
+                    "§7确保玩家卡面相似但顺序各异",
+                    toggle};
+                case "identical" -> new String[]{
+                    "§7相同卡片 - 所有玩家完全相同",
+                    "§c没有借口说你卡片更难了！",
+                    toggle};
+                case "random" -> new String[]{
+                    "§7随机选择卡片类型",
+                    toggle};
+                default -> new String[]{toggle};
+            };
+            case "胜利条件" -> switch (value) {
+                case "full card" -> new String[]{
+                    "§7满卡获胜 - 收集整张卡片的所有物品",
+                    "§e完整体验，更具挑战",
+                    toggle};
+                case "single row" -> new String[]{
+                    "§7单行获胜 - 完成一行/一列/对角线",
+                    "§a快速决胜，适合短局",
+                    toggle};
+                case "random" -> new String[]{
+                    "§7随机选择胜利条件",
+                    toggle};
+                default -> new String[]{toggle};
+            };
+            case "公开卡片" -> switch (value) {
+                case "enabled" -> new String[]{
+                    "§7开启 - 勾选时通知所有玩家具体物品名",
+                    "§7允许通过望远镜查看他人卡片",
+                    "§a透明度最大化",
+                    toggle};
+                case "disabled" -> new String[]{
+                    "§7关闭 - 勾选时仅提示'勾选了一个物品'",
+                    "§7不可查看他人卡片",
+                    "§c信息保密",
+                    toggle};
+                case "random" -> new String[]{
+                    "§7随机选择是否公开",
+                    toggle};
+                default -> new String[]{toggle};
+            };
+            case "时间限制" -> new String[]{getTimeLimitLore(currentValue), toggle};
+            case "玩家装备" -> new String[]{getLoadoutLore(currentValue), toggle};
+            default -> new String[]{toggle};
+        };
+    }
+
+    private String getTimeLimitLore(String currentValue) {
+        int minutes = Integer.parseInt(currentValue);
+        if (minutes == 0) {
+            return "§7无时间限制 - 20/40/60 分钟时获得速度提升";
+        }
+        return "§7限时 " + minutes + " 分钟 - 超时游戏自动结束";
+    }
+
+    private String getLoadoutLore(String currentValue) {
+        return switch (currentValue) {
+            case "0" -> "§7裸装 - 空背包开局，从零开始生存";
+            case "1" -> "§7新手装备 - 全套木制工具，快速起步";
+            case "2" -> "§7船只装备 - 低附魔铁装 + 盾 + 船 + 床";
+            case "3" -> "§7飞行装备 - 满附魔下界合金 + 鞘翅 + 烟花火箭";
+            case "4" -> "§7弓箭装备 - 铁装 + 盾 + 弓 + 大量箭矢";
+            case "50" -> "§7随机装备 - 每次随机选择一种装备组合";
+            default -> "§7未知装备";
+        };
     }
 
     private String translateValueForDisplay(String prefix, String currentValue) {
@@ -130,7 +278,11 @@ public class BingoGameGUIManager {
     private ItemStack createStartGameItem() {
         return new ItemBuilder(Material.ENDER_PEARL)
                 .withDisplayName(ChatColor.GREEN + "开始游戏")
-                .withLore(ChatColor.GRAY + "点击开始游戏").build();
+                .withLore(
+                    ChatColor.GRAY + "以当前配置立即开始宾果游戏",
+                    ChatColor.GRAY + "同时设置你当前位置为宾果出生点",
+                    ChatColor.YELLOW + "游戏将经过倒计时后正式开始"
+                ).build();
     }
 
     //region Toggle and update the GUI
