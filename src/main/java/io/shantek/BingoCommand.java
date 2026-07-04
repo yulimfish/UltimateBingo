@@ -237,14 +237,26 @@ public class BingoCommand implements CommandExecutor {
                 if (ultimateBingo.multiWorldServer && !player.getWorld().getName().equalsIgnoreCase(ultimateBingo.bingoWorld.toLowerCase())) {
                     player.sendMessage(ChatColor.RED + "该命令只能在宾果世界中执行。");
                 } else {
-                    if (ultimateBingo.currentGameMode.equalsIgnoreCase("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+                    if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+                        // Teams mode: show team selection first, join happens on wool click
+                        ultimateBingo.bingoFunctions.resetIndividualPlayer(player, true);
+                        String team = ultimateBingo.bingoFunctions.getTeam(player);
+                        if (team.equalsIgnoreCase("无") || team.isEmpty()) {
+                            player.openInventory(ultimateBingo.bingoPlayerGUIManager.createTeamSelectionGUI(player));
+                        } else {
+                            player.openInventory(ultimateBingo.bingoPlayerGUIManager.createPlayerGUI(player));
+                        }
+                    } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
                         ultimateBingo.bingoFunctions.resetIndividualPlayer(player, true);
                         ultimateBingo.bingoManager.joinGameInProgress(player);
+                        player.openInventory(ultimateBingo.bingoPlayerGUIManager.createPlayerGUI(player));
                     } else if (!ultimateBingo.bingoManager.checkHasBingoCard(player)) {
                         ultimateBingo.bingoFunctions.resetIndividualPlayer(player, true);
                         ultimateBingo.bingoManager.joinGameInProgress(player);
+                        player.openInventory(ultimateBingo.bingoPlayerGUIManager.createPlayerGUI(player));
+                    } else {
+                        player.openInventory(ultimateBingo.bingoPlayerGUIManager.createPlayerGUI(player));
                     }
-                    player.openInventory(ultimateBingo.bingoPlayerGUIManager.createPlayerGUI(player));
                 }
             } else if (!ultimateBingo.bingoStarted) {
                 // In teams mode, allow team selection even before game starts

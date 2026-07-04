@@ -63,10 +63,12 @@ public class BingoPlayerGUIListener implements Listener {
 
                 if (newTeam != null) {
                     ultimateBingo.bingoFunctions.setManualTeam(player.getUniqueId(), newTeam);
-                    // Re-assign the player to the chosen team in real-time
+
+                    // During active game: full join (card + gear + teleport)
                     if (ultimateBingo.bingoStarted) {
-                        ultimateBingo.bingoFunctions.assignPlayerToActiveTeam(player);
+                        ultimateBingo.bingoManager.joinGameInProgress(player);
                     }
+
                     player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
 
                     String teamDisplay = switch (newTeam) {
@@ -77,8 +79,12 @@ public class BingoPlayerGUIListener implements Listener {
                     };
                     player.sendMessage(ChatColor.GREEN + "你已加入 " + teamDisplay + ChatColor.GREEN + "！");
 
-                    // Refresh the team selection GUI
-                    player.openInventory(ultimateBingo.bingoPlayerGUIManager.createTeamSelectionGUI(player));
+                    // Show welcome screen after joining (game active) or refresh (pre-game)
+                    if (ultimateBingo.bingoStarted) {
+                        player.openInventory(ultimateBingo.bingoPlayerGUIManager.createPlayerGUI(player));
+                    } else {
+                        player.openInventory(ultimateBingo.bingoPlayerGUIManager.createTeamSelectionGUI(player));
+                    }
                 }
                 return;
             }
