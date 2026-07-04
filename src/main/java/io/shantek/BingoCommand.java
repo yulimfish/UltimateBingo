@@ -243,7 +243,12 @@ public class BingoCommand implements CommandExecutor {
                     player.openInventory(ultimateBingo.bingoPlayerGUIManager.createPlayerGUI(player));
                 }
             } else if (!ultimateBingo.bingoStarted) {
-                player.sendMessage(ChatColor.RED + "宾果尚未开始！");
+                // In teams mode, allow team selection even before game starts
+                if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+                    player.openInventory(ultimateBingo.bingoPlayerGUIManager.createTeamSelectionGUI(player));
+                } else {
+                    player.sendMessage(ChatColor.RED + "宾果尚未开始！");
+                }
             }
         }
         return false;
