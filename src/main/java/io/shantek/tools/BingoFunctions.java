@@ -1088,34 +1088,54 @@ public class BingoFunctions
 
     // Method to assign a player to an active team
     public void assignPlayerToActiveTeam(Player player) {
+        // Priority 1: manual team assignment (from GUI or sign)
+        String manualTeam = getManualTeam(player.getUniqueId());
+        if (manualTeam != null) {
+            playerTeamsMap.put(player.getUniqueId(), manualTeam);
+            String teamName = switch (manualTeam) {
+                case "red" -> "红";
+                case "blue" -> "蓝";
+                case "yellow" -> "黄";
+                default -> manualTeam;
+            };
+            player.sendMessage(net.md_5.bungee.api.ChatColor.GREEN + "你已被分配到 " + teamName + " 队！");
+            notifyActivePlayers(player);
+            return;
+        }
+
+        // Priority 2: balance among existing teams
         Map<String, Integer> teamSizes = new LinkedHashMap<>();
         teamSizes.put("red", 0);
         teamSizes.put("yellow", 0);
         teamSizes.put("blue", 0);
 
-        // Count the number of players in each team
         playerTeamsMap.values().forEach(team -> {
             if (teamSizes.containsKey(team)) {
                 teamSizes.put(team, teamSizes.get(team) + 1);
             }
         });
 
-        // Filter out the teams with no players
         teamSizes.entrySet().removeIf(entry -> entry.getValue() == 0);
 
         if (teamSizes.isEmpty()) {
-            // No existing players in any team, inform the player
+            // No existing players in any team, info
+
             player.sendMessage(net.md_5.bungee.api.ChatColor.RED + "没有可加入的活跃队伍。");
             return;
         }
 
-        // Find the team with the least players among the ones with at least one player
         String teamToJoin = teamSizes.keySet().stream()
                 .min(Comparator.comparingInt(teamSizes::get))
                 .orElseThrow();
 
         playerTeamsMap.put(player.getUniqueId(), teamToJoin);
-        player.sendMessage(net.md_5.bungee.api.ChatColor.GREEN + "你已被分配到 " + teamToJoin + " 队干得漂亮！");
+        String teamNameA = switch (teamToJoin.toLowerCase()) {
+            case "red" -> "红";
+            case "blue" -> "蓝";
+            case "yellow" -> "黄";
+            default -> teamToJoin;
+        };
+        player.sendMessage(net.md_5.bungee.api.ChatColor.GREEN + "你已被分配到 " + teamNameA + " 队！");
         notifyActivePlayers(player);
     }
 

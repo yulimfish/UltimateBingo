@@ -13,6 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 
 public class BingoPlayerGUIListener implements Listener {
     MaterialList materialList;
@@ -35,12 +36,58 @@ public class BingoPlayerGUIListener implements Listener {
 
         if (ultimateBingo.bingoFunctions.canInteractWithCard(player)) {
 
-            // Ensure the event was triggered in the Bingo configuration GUI
+            // ===== TEAM SELECTION GUI =====
+            if (e.getView().getTitle().contains("选择队伍")) {
+                e.setCancelled(true);
+                ItemStack clicked = e.getCurrentItem();
+                if (clicked == null) return;
+
+                Material type = clicked.getType();
+
+                // Back button (chest at slot 49)
+                if (type == Material.CHEST) {
+                    player.openInventory(ultimateBingo.bingoPlayerGUIManager.createPlayerGUI(player));
+                    player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+                    return;
+                }
+
+                // Team selection via wool click
+                String newTeam = null;
+                if (type == Material.RED_WOOL) {
+                    newTeam = "red";
+                } else if (type == Material.YELLOW_WOOL) {
+                    newTeam = "yellow";
+                } else if (type == Material.BLUE_WOOL) {
+                    newTeam = "blue";
+                }
+
+                if (newTeam != null) {
+                    ultimateBingo.bingoFunctions.setManualTeam(player.getUniqueId(), newTeam);
+                    // Re-assign the player to the chosen team in real-time
+                    if (ultimateBingo.bingoStarted) {
+                        ultimateBingo.bingoFunctions.assignPlayerToActiveTeam(player);
+                    }
+                    player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1.0F, 1.0F);
+
+                    String teamDisplay = switch (newTeam) {
+                        case "red" -> ChatColor.RED + "红队";
+                        case "blue" -> ChatColor.BLUE + "蓝队";
+                        case "yellow" -> ChatColor.YELLOW + "黄队";
+                        default -> newTeam;
+                    };
+                    player.sendMessage(ChatColor.GREEN + "你已加入 " + teamDisplay + ChatColor.GREEN + "！");
+
+                    // Refresh the team selection GUI
+                    player.openInventory(ultimateBingo.bingoPlayerGUIManager.createTeamSelectionGUI(player));
+                }
+                return;
+            }
+
+            // ===== WELCOME GUI =====
             if (e.getView().getTitle().contains("欢迎来到终极宾果")) {
                 e.setCancelled(true);  // Prevent dragging items
 
                 int slot = e.getRawSlot();
-                // Ensure clicks are within the inventory size
                 if (slot >= 0 && slot < 9) {
                     switch (slot) {
                         case 0:
@@ -48,7 +95,15 @@ public class BingoPlayerGUIListener implements Listener {
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
                             break;
 
-                        case 1:
+                        case 2:
+                            // Team selection button (teams mode)
+                            if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+                                player.openInventory(ultimateBingo.bingoPlayerGUIManager.createTeamSelectionGUI(player));
+                                player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
+                            }
+                            break;
+
+                        case 4:
                             player.openInventory(ultimateBingo.bingoPlayerGUIManager.setupPlayersBingoCardsInventory());
                             player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 1.0F, 1.0F);
                             break;
