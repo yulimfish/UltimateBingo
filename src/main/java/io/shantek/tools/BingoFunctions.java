@@ -688,9 +688,9 @@ public class BingoFunctions
     //region Random world teleport
 
     /**
-     * Teleports the player to a random ground location anywhere in their current world.
-     * Respects the world border, finds highest solid block, and ensures safe landing.
-     * Uses chunk pre-loading to avoid cascading chunk generation during search.
+     * Teleports the player to a random ground location in their current world.
+     * Only searches already-loaded chunks to avoid blocking the main thread
+     * with synchronous chunk generation. Falls back to world spawn if needed.
      */
     public boolean teleportToRandomGround(Player player) {
         World world = player.getWorld();
@@ -698,22 +698,21 @@ public class BingoFunctions
 
         double borderSize = world.getWorldBorder().getSize() / 2.0;
         if (borderSize <= 0) borderSize = 3000;
-        // Cap search range to avoid excessive I/O
-        if (borderSize > 8000) borderSize = 8000;
+        if (borderSize > 5000) borderSize = 5000;
 
-        for (int attempt = 0; attempt < 12; attempt++) {
+        // Try to find a safe location in an already-loaded chunk
+        for (int attempt = 0; attempt < 30; attempt++) {
             int dx = (int)(rng.nextDouble() * borderSize * 2 - borderSize);
             int dz = (int)(rng.nextDouble() * borderSize * 2 - borderSize);
 
-            // Pre-load the chunk to avoid cascading chunk-gen on getHighestBlockYAt
             int cx = dx >> 4, cz = dz >> 4;
-            if (!world.isChunkLoaded(cx, cz)) {
-                world.getChunkAt(cx, cz); // sync load this one chunk
-            }
+
+            // Skip if chunk is not loaded — never force-load on main thread
+            if (!world.isChunkLoaded(cx, cz)) continue;
 
             int y = world.getHighestBlockYAt(dx, dz);
 
-            // Skip water/lava blocks quickly without loading the block
+            // Skip water/lava (chunk is loaded so getBlockAt is cheap)
             Material topBlock = world.getBlockAt(dx, y, dz).getType();
             if (topBlock == Material.WATER || topBlock == Material.LAVA) continue;
 
@@ -726,8 +725,13 @@ public class BingoFunctions
                 return true;
             }
         }
-        player.sendMessage(ChatColor.RED + "未找到安全位置，请重试。");
-        return false;
+
+        // Fallback: teleport to world spawn
+        Location spawn = world.getSpawnLocation();
+        spawn = world.getHighestBlockAt(spawn).getLocation().add(0.5, 1, 0);
+        player.teleport(spawn);
+        player.sendMessage(ChatColor.YELLOW + "已传送至世界出生点（未找到已加载的安全位置）");
+        return true;
     }
 
     //endregion
