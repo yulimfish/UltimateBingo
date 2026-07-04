@@ -498,22 +498,8 @@ public class BingoCommand implements CommandExecutor {
             // Game still active? If so, let's start it
             ultimateBingo.playedSinceReboot = true;
 
-            // Get all online players as a List and scatter/teleport them all close together
-            // Don't do this for a group game
-
-            /*
-            if (!ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
-                List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
-                ultimateBingo.bingoFunctions.safeScatterPlayers(players, ultimateBingo.bingoSpawnLocation, 5);
-            }
-            */
-
-            // Will change this to safe scatter in teams in an update
-
-            if (!Objects.equals(ultimateBingo.currentGameMode, "teams")) {
-                List<Player> players = new ArrayList<>(Bukkit.getOnlinePlayers());
-                ultimateBingo.bingoFunctions.safeScatterPlayers(players, ultimateBingo.bingoSpawnLocation, 5);
-            }
+            // Players are randomly teleported later in the delayed card-giving task,
+            // so no need to scatter here (avoids redundant chunk loading)
 
 
             // Handle player teleportation and give bingo cards after the countdown

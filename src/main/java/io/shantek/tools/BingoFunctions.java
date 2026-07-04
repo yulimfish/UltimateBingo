@@ -690,24 +690,35 @@ public class BingoFunctions
     /**
      * Teleports the player to a random ground location anywhere in their current world.
      * Respects the world border, finds highest solid block, and ensures safe landing.
+     * Uses chunk pre-loading to avoid cascading chunk generation during search.
      */
     public boolean teleportToRandomGround(Player player) {
         World world = player.getWorld();
         Random rng = new Random();
 
-        // Use world border to determine range, or fall back to a large default
         double borderSize = world.getWorldBorder().getSize() / 2.0;
-        if (borderSize <= 0) borderSize = 5000;
+        if (borderSize <= 0) borderSize = 3000;
+        // Cap search range to avoid excessive I/O
+        if (borderSize > 8000) borderSize = 8000;
 
-        for (int attempt = 0; attempt < 30; attempt++) {
+        for (int attempt = 0; attempt < 12; attempt++) {
             int dx = (int)(rng.nextDouble() * borderSize * 2 - borderSize);
             int dz = (int)(rng.nextDouble() * borderSize * 2 - borderSize);
 
-            int y = world.getHighestBlockYAt(dx, dz);
-            Location loc = new Location(world, dx + 0.5, y + 1, dz + 0.5);
+            // Pre-load the chunk to avoid cascading chunk-gen on getHighestBlockYAt
+            int cx = dx >> 4, cz = dz >> 4;
+            if (!world.isChunkLoaded(cx, cz)) {
+                world.getChunkAt(cx, cz); // sync load this one chunk
+            }
 
+            int y = world.getHighestBlockYAt(dx, dz);
+
+            // Skip water/lava blocks quickly without loading the block
+            Material topBlock = world.getBlockAt(dx, y, dz).getType();
+            if (topBlock == Material.WATER || topBlock == Material.LAVA) continue;
+
+            Location loc = new Location(world, dx + 0.5, y + 1, dz + 0.5);
             if (isSafeLocation(loc)) {
-                // Ensure player faces a random horizontal direction
                 loc.setYaw(rng.nextFloat() * 360);
                 loc.setPitch(0);
                 player.teleport(loc);
