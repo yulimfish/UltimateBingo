@@ -685,6 +685,42 @@ public class BingoFunctions
 
     //endregion
 
+    //region Random world teleport
+
+    /**
+     * Teleports the player to a random ground location anywhere in their current world.
+     * Respects the world border, finds highest solid block, and ensures safe landing.
+     */
+    public boolean teleportToRandomGround(Player player) {
+        World world = player.getWorld();
+        Random rng = new Random();
+
+        // Use world border to determine range, or fall back to a large default
+        double borderSize = world.getWorldBorder().getSize() / 2.0;
+        if (borderSize <= 0) borderSize = 5000;
+
+        for (int attempt = 0; attempt < 30; attempt++) {
+            int dx = (int)(rng.nextDouble() * borderSize * 2 - borderSize);
+            int dz = (int)(rng.nextDouble() * borderSize * 2 - borderSize);
+
+            int y = world.getHighestBlockYAt(dx, dz);
+            Location loc = new Location(world, dx + 0.5, y + 1, dz + 0.5);
+
+            if (isSafeLocation(loc)) {
+                // Ensure player faces a random horizontal direction
+                loc.setYaw(rng.nextFloat() * 360);
+                loc.setPitch(0);
+                player.teleport(loc);
+                player.sendMessage(ChatColor.GREEN + "已随机传送至 X:" + dx + " Z:" + dz);
+                return true;
+            }
+        }
+        player.sendMessage(ChatColor.RED + "未找到安全位置，请重试。");
+        return false;
+    }
+
+    //endregion
+
     //region Game timers
 
     public void setGameTimer() {

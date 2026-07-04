@@ -712,6 +712,10 @@ public class BingoManager {
         // Add them to the player list
         ultimateBingo.bingoFunctions.addPlayer(player.getUniqueId());
 
+        // Randomly teleport to a ground location in the world
+        Bukkit.getScheduler().runTaskLater(ultimateBingo, () ->
+            ultimateBingo.bingoFunctions.teleportToRandomGround(player), 10L);
+
 
     }
 

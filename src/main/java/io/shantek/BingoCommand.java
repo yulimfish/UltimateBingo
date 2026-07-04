@@ -157,6 +157,10 @@ public class BingoCommand implements CommandExecutor {
                 ultimateBingo.reloadMapBackgrounds();
                 player.sendMessage(ChatColor.GREEN + "宾果配置与地图背景已重载。");
                 return true;
+            } else if (args[0].equalsIgnoreCase("random")) {
+                // Random teleport - available to all players
+                ultimateBingo.bingoFunctions.teleportToRandomGround(player);
+                return true;
             } else if (args[0].equalsIgnoreCase("leaderboard")) {
                 if (args.length == 1) {
                     List<PlayerStats> topPlayersOverall = ultimateBingo.getLeaderboard().getTopPlayersOverall();
@@ -518,6 +522,10 @@ public class BingoCommand implements CommandExecutor {
                         if (ultimateBingo.currentGameMode.equals("speedrun") || ultimateBingo.currentGameMode.equals("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
                             player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1, false, false, true));
                         }
+
+                        // Randomly teleport to a ground location in the world
+                        Bukkit.getScheduler().runTaskLater(plugin, () ->
+                            ultimateBingo.bingoFunctions.teleportToRandomGround(player), 10L);
 
                         // Add them to the player list
                         ultimateBingo.bingoFunctions.addPlayer(player.getUniqueId());
