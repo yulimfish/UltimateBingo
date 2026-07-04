@@ -24,6 +24,11 @@ public class BingoPlayerJoinListener implements Listener {
         Player player = event.getPlayer();
         String toWorld = player.getWorld().getName();
 
+        // Hide scoreboard if player left the active bingo world
+        if (!ultimateBingo.bingoFunctions.isActivePlayer(player)) {
+            ultimateBingo.bingoScoreboardManager.hideBoard(player);
+        }
+
         // Check if multiworld server setting is enabled
         if (ultimateBingo.multiWorldServer) {
             // Check if the player teleported to the bingo world

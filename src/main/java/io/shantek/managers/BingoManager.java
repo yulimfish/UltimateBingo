@@ -397,6 +397,9 @@ public class BingoManager {
                 // Update the player's map to reflect the completion
                 ultimateBingo.bingoMapManager.updatePlayerMap(player);
 
+                // Update the player's scoreboard
+                ultimateBingo.bingoScoreboardManager.updateBoard(player);
+
                 // Top up their rockets if using the correct loadout
                 ultimateBingo.bingoFunctions.topUpFirstFireworkRocketsStack(player);
 
@@ -714,6 +717,9 @@ public class BingoManager {
 
         // Randomly teleport to a ground location in the world
         ultimateBingo.bingoFunctions.teleportToRandomGround(player);
+
+        // Show the scoreboard
+        ultimateBingo.bingoScoreboardManager.showBoard(player);
 
 
     }

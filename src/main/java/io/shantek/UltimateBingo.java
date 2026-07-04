@@ -33,6 +33,7 @@ public final class UltimateBingo extends JavaPlugin {
     public BingoPlayerGUIListener bingoPlayerGUIListener;
     public BingoCommand bingoCommand;
     public BingoMapManager bingoMapManager;
+    public BingoScoreboardManager bingoScoreboardManager;
     // === Optional custom map background (128x128 PNG) ===
     // Cached as map palette bytes for fast rendering. Reloadable via /bingo reload.
     private volatile byte[] cachedParchmentBase = null;
@@ -146,6 +147,7 @@ public final class UltimateBingo extends JavaPlugin {
         bingoGameGUIManager = new BingoGameGUIManager(this);
         bingoPlayerGUIManager = new BingoPlayerGUIManager(this);
         bingoMapManager = new BingoMapManager(this);
+        bingoScoreboardManager = new BingoScoreboardManager(this);
         cardTypes = new CardTypes(this);
         configFile = new ConfigFile(this);
         leaderboard = new Leaderboard(this);

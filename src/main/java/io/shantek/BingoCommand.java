@@ -394,6 +394,7 @@ public class BingoCommand implements CommandExecutor {
                             // Teleport to random ground when "3" shows so players are in position by GO
                             if (count == 3) {
                                 ultimateBingo.bingoFunctions.teleportToRandomGround(player);
+                                ultimateBingo.bingoScoreboardManager.showBoard(player);
                             }
                         }, 200 + 30 * (3 - count)); // Countdown starts at 5 seconds
 
@@ -564,6 +565,9 @@ public class BingoCommand implements CommandExecutor {
 
         // Stop shuffle mode if active
         ultimateBingo.bingoManager.stopShuffleMode();
+
+        // Hide all scoreboards
+        ultimateBingo.bingoScoreboardManager.hideAllBoards();
 
         ultimateBingo.bingoCardActive = false;
         ultimateBingo.bingoStarted = false;
