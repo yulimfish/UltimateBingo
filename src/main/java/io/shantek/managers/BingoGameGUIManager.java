@@ -207,21 +207,34 @@ public class BingoGameGUIManager {
     }
 
     private String getTimeLimitLore(String currentValue) {
-        int minutes = Integer.parseInt(currentValue);
-        if (minutes == 0) {
+        // currentValue may be "无时间限制" when displaying unlimited
+        if (currentValue.equals("无时间限制") || currentValue.equals("Unlimited Time")) {
             return "§7无时间限制 - 20/40/60 分钟时获得速度提升";
         }
-        return "§7限时 " + minutes + " 分钟 - 超时游戏自动结束";
+        try {
+            int minutes = Integer.parseInt(currentValue);
+            if (minutes == 0) {
+                return "§7无时间限制 - 20/40/60 分钟时获得速度提升";
+            }
+            return "§7限时 " + minutes + " 分钟 - 超时游戏自动结束";
+        } catch (NumberFormatException e) {
+            // Fallback: parse from the ultimateBingo.gameTime field directly
+            if (ultimateBingo.gameTime == 0) {
+                return "§7无时间限制 - 20/40/60 分钟时获得速度提升";
+            }
+            return "§7限时 " + ultimateBingo.gameTime + " 分钟 - 超时游戏自动结束";
+        }
     }
 
     private String getLoadoutLore(String currentValue) {
-        return switch (currentValue) {
-            case "0" -> "§7裸装 - 空背包开局，从零开始生存";
-            case "1" -> "§7新手装备 - 全套木制工具，快速起步";
-            case "2" -> "§7船只装备 - 低附魔铁装 + 盾 + 船 + 床";
-            case "3" -> "§7飞行装备 - 满附魔下界合金 + 鞘翅 + 烟花火箭";
-            case "4" -> "§7弓箭装备 - 铁装 + 盾 + 弓 + 大量箭矢";
-            case "50" -> "§7随机装备 - 每次随机选择一种装备组合";
+        // currentValue may be the Chinese display name, so read from ultimateBingo.loadoutType
+        return switch (ultimateBingo.loadoutType) {
+            case 0 -> "§7裸装 - 空背包开局，从零开始生存";
+            case 1 -> "§7新手装备 - 全套木制工具，快速起步";
+            case 2 -> "§7船只装备 - 低附魔铁装 + 盾 + 船 + 床";
+            case 3 -> "§7飞行装备 - 满附魔下界合金 + 鞘翅 + 烟花火箭";
+            case 4 -> "§7弓箭装备 - 铁装 + 盾 + 弓 + 大量箭矢";
+            case 50 -> "§7随机装备 - 每次随机选择一种装备组合";
             default -> "§7未知装备";
         };
     }
