@@ -20,6 +20,7 @@ public class BingoScoreboardManager {
 
     private final UltimateBingo plugin;
     private final Map<UUID, Scoreboard> playerBoards = new HashMap<>();
+    private int timerTaskId = -1;
 
     public BingoScoreboardManager(UltimateBingo plugin) {
         this.plugin = plugin;
@@ -34,8 +35,11 @@ public class BingoScoreboardManager {
                 ChatColor.GOLD + "" + ChatColor.BOLD + "宾果排行榜");
         obj.setDisplaySlot(DisplaySlot.SIDEBAR);
 
-        rebuildAll();
         playerBoards.put(player.getUniqueId(), board);
+        rebuildAll();
+
+        // Start the time-refresh ticker if not already running
+        if (timerTaskId == -1) startTimeUpdater();
     }
 
     /** Called when any player completes an item — refreshes ALL boards. */
@@ -55,12 +59,52 @@ public class BingoScoreboardManager {
     }
 
     public void hideAllBoards() {
+        stopTimeUpdater();
         Scoreboard main = Bukkit.getScoreboardManager().getMainScoreboard();
         for (UUID id : playerBoards.keySet()) {
             Player p = Bukkit.getPlayer(id);
             if (p != null && p.isOnline()) p.setScoreboard(main);
         }
         playerBoards.clear();
+    }
+
+    // ─── timer tick ──────────────────────────────────────
+
+    private void startTimeUpdater() {
+        timerTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(plugin, () -> {
+            if (playerBoards.isEmpty()) {
+                stopTimeUpdater();
+                return;
+            }
+            refreshTimeOnly();
+        }, 20L, 20L);
+    }
+
+    private void stopTimeUpdater() {
+        if (timerTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(timerTaskId);
+            timerTaskId = -1;
+        }
+    }
+
+    /** Lightweight: only updates the time lines, keeps rankings intact. */
+    private void refreshTimeOnly() {
+        String timeLine = buildTimeLine();
+        for (Map.Entry<UUID, Scoreboard> entry : playerBoards.entrySet()) {
+            Player p = Bukkit.getPlayer(entry.getKey());
+            if (p == null || !p.isOnline()) continue;
+
+            Scoreboard board = entry.getValue();
+            Objective obj = board.getObjective("bingo");
+            if (obj == null) continue;
+
+            // Remove old time/footer entries (score 0-1) and add updated time
+            for (String s : board.getEntries()) {
+                Score score = obj.getScore(s);
+                if (score.getScore() <= 1) board.resetScores(s);
+            }
+            obj.getScore(timeLine).setScore(1);
+        }
     }
 
     // ─── internal ────────────────────────────────────────
