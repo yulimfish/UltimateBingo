@@ -29,13 +29,14 @@ public class BingoPlayerJoinListener implements Listener {
             ultimateBingo.bingoScoreboardManager.hideBoard(player);
         }
 
-        // Check if multiworld server setting is enabled
+        // Multi-world: handle entering bingo world
         if (ultimateBingo.multiWorldServer) {
-            // Check if the player teleported to the bingo world
             if (toWorld.equalsIgnoreCase(ultimateBingo.bingoWorld)) {
-                // Check if bingo isn't active
-                if (!ultimateBingo.bingoStarted || !ultimateBingo.bingoFunctions.isPlayerInGame(player.getUniqueId())) {
-                    // Reset the player and their inventory
+                if (ultimateBingo.bingoStarted && ultimateBingo.bingoFunctions.isPlayerInGame(player.getUniqueId())) {
+                    // Returning player — restore game state
+                    restorePlayerState(player);
+                } else if (!ultimateBingo.bingoStarted || !ultimateBingo.bingoFunctions.isPlayerInGame(player.getUniqueId())) {
+                    // New player or game not running — reset
                     ultimateBingo.bingoFunctions.resetIndividualPlayer(player, true);
                     player.sendMessage("你不在进行中的宾果游戏中。你的背包已被重置。");
                 }
@@ -45,13 +46,10 @@ public class BingoPlayerJoinListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
-
-        // Get the player who just joined
         Player player = e.getPlayer();
 
-
+        // Multi-world: prompt players in non-bingo worlds about active game
         if (ultimateBingo.multiWorldServer && !player.getWorld().getName().equalsIgnoreCase(ultimateBingo.bingoWorld.toLowerCase()) && ultimateBingo.bingoStarted) {
-
             if (!ultimateBingo.bingoFunctions.isPlayerInGame(player.getUniqueId())) {
                 Bukkit.getScheduler().scheduleSyncDelayedTask(ultimateBingo, () -> {
                     player.sendMessage(ChatColor.GREEN + "宾果游戏正在进行中。前往宾果世界并输入 /bingo 即可加入");
@@ -61,7 +59,7 @@ public class BingoPlayerJoinListener implements Listener {
 
         if (ultimateBingo.bingoFunctions.isActivePlayer(player)) {
             if (!ultimateBingo.playedSinceReboot) {
-                // A game hasn't been played since the reboot - Reset the player
+                // Never played since reboot — full reset
                 player.setWalkSpeed(0.2f);
                 player.removePotionEffect(PotionEffectType.SLOW);
                 player.removePotionEffect(PotionEffectType.JUMP);
@@ -69,25 +67,25 @@ public class BingoPlayerJoinListener implements Listener {
                 return;
 
             } else if (!ultimateBingo.bingoStarted) {
-
-                // A game has been played since reboot - see what we need to do with the player
+                // Game not running
                 player.setWalkSpeed(0.2f);
                 player.removePotionEffect(PotionEffectType.SLOW);
                 player.removePotionEffect(PotionEffectType.JUMP);
-
-                // If they joined and a game isn't active, reset their inventory in case they
-                // carried anything over from a prior game
                 ultimateBingo.bingoFunctions.resetIndividualPlayer(player, true);
 
-                // Give them a replacement card so they can view results from a prior game
                 if (ultimateBingo.bingoManager.checkHasBingoCard(player)) {
                     ultimateBingo.bingoFunctions.giveBingoCard(player);
                 }
 
-            } else {
+            } else if (ultimateBingo.bingoStarted && ultimateBingo.bingoFunctions.isPlayerInGame(player.getUniqueId())) {
+                // Game is active and player is in it — restore state (reconnect / rejoin)
+                player.setWalkSpeed(0.2f);
+                player.removePotionEffect(PotionEffectType.SLOW);
+                player.removePotionEffect(PotionEffectType.JUMP);
+                restorePlayerState(player);
 
-                // Check if bingo is active and if they have a card. If they don't,
-                // prompt them on how to join the game. Delay the message by 5 seconds
+            } else {
+                // Game active but player not in it — prompt to join
                 player.setWalkSpeed(0.2f);
                 player.removePotionEffect(PotionEffectType.SLOW);
                 player.removePotionEffect(PotionEffectType.JUMP);
@@ -96,13 +94,31 @@ public class BingoPlayerJoinListener implements Listener {
                     player.sendMessage(ChatColor.GREEN + "宾果游戏正在进行中。输入 /bingo 加入！");
                 }, 200);
 
-                if (ultimateBingo.bingoStarted && ultimateBingo.bingoManager.checkHasBingoCard(player) && (ultimateBingo.currentGameMode.equals("speedrun") || ultimateBingo.currentGameMode.equals("group"))) {
+                if (ultimateBingo.bingoManager.checkHasBingoCard(player)
+                        && (ultimateBingo.currentGameMode.equals("speedrun") || ultimateBingo.currentGameMode.equals("group"))) {
                     player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1, false, false, true));
                 }
             }
-
         }
-
     }
 
+    /**
+     * Restore a returning player's game state: card, scoreboard, night vision.
+     */
+    private void restorePlayerState(Player player) {
+        // Re-give the bingo card (map items are per-world)
+        ultimateBingo.bingoFunctions.giveBingoCard(player);
+
+        // Show their scoreboard
+        ultimateBingo.bingoScoreboardManager.showBoard(player);
+
+        // Re-apply night vision for applicable modes
+        if (ultimateBingo.currentGameMode.equals("speedrun")
+                || ultimateBingo.currentGameMode.equals("group")
+                || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+            player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1, false, false, true));
+        }
+
+        player.sendMessage(ChatColor.GREEN + "已恢复你的宾果游戏状态，继续加油！");
+    }
 }
