@@ -696,38 +696,43 @@ public class BingoFunctions
         World world = player.getWorld();
         Random rng = new Random();
 
-        double radius = ultimateBingo.teleportRadius;
-        if (radius <= 0) {
-            radius = world.getWorldBorder().getSize() / 2.0;
-            if (radius <= 0) radius = 5000;
+        double baseRadius = ultimateBingo.teleportRadius;
+        if (baseRadius <= 0) {
+            baseRadius = world.getWorldBorder().getSize() / 2.0;
+            if (baseRadius <= 0) baseRadius = 5000;
         }
-        if (radius > 8000) radius = 8000;
+        if (baseRadius > 8000) baseRadius = 8000;
 
         Location center = world.getSpawnLocation();
 
-        // Try a few random locations
-        for (int attempt = 0; attempt < 8; attempt++) {
-            double angle = rng.nextDouble() * 2 * Math.PI;
-            double dist = radius * Math.sqrt(rng.nextDouble());
-            int dx = center.getBlockX() + (int)(Math.cos(angle) * dist);
-            int dz = center.getBlockZ() + (int)(Math.sin(angle) * dist);
-            int cx = dx >> 4, cz = dz >> 4;
+        // Progressively shrink radius if no safe spot found
+        for (double radius = baseRadius; radius >= 250; radius /= 2) {
+            for (int attempt = 0; attempt < 8; attempt++) {
+                double angle = rng.nextDouble() * 2 * Math.PI;
+                double dist = radius * Math.sqrt(rng.nextDouble());
+                int dx = center.getBlockX() + (int)(Math.cos(angle) * dist);
+                int dz = center.getBlockZ() + (int)(Math.sin(angle) * dist);
+                int cx = dx >> 4, cz = dz >> 4;
 
-            // Already loaded → teleport immediately (fast path)
-            if (world.isChunkLoaded(cx, cz)) {
-                if (teleportTo(player, world, dx, dz)) return true;
-                continue;
+                if (world.isChunkLoaded(cx, cz)) {
+                    if (teleportTo(player, world, dx, dz)) return true;
+                    continue;
+                }
+
+                if (loadChunkAsync(player, world, dx, dz, cx, cz)) return true;
             }
 
-            // Paper async chunk load → teleport in callback
-            if (loadChunkAsync(player, world, dx, dz, cx, cz)) return true;
+            // Next tier — let the player know we're still trying
+            if (radius > 500) {
+                player.sendMessage(ChatColor.YELLOW + "远处未找到位置，正在缩小范围重试……");
+            }
         }
 
-        // Fallback to spawn
+        // Last resort: spawn
         Location spawn = world.getSpawnLocation();
         spawn = world.getHighestBlockAt(spawn).getLocation().add(0.5, 1, 0);
         player.teleport(spawn);
-        player.sendMessage(ChatColor.YELLOW + "已传送至世界出生点（未找到合适位置）");
+        player.sendMessage(ChatColor.YELLOW + "已传送至世界出生点（所有范围均未找到合适位置）");
         return true;
     }
 
