@@ -541,7 +541,6 @@ public class BingoCommand implements CommandExecutor {
 
             }
 
-            });
         }
     }
 
