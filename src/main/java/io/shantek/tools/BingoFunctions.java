@@ -812,7 +812,14 @@ public class BingoFunctions
         Long last = teleportCooldown.get(player.getUniqueId());
         if (last != null && now - last < 5000) return false;
         teleportCooldown.put(player.getUniqueId(), now);
+        return doTeleportToRandomGround(player);
+    }
 
+    /**
+     * Internal teleport without cooldown check — used for retries triggered
+     * by async/timeout callbacks inside the same teleport session.
+     */
+    private boolean doTeleportToRandomGround(Player player) {
         World world = player.getWorld();
         Random rng = new Random();
 
@@ -892,8 +899,8 @@ public class BingoFunctions
                 if (!done.compareAndSet(false, true)) return;
                 Bukkit.getScheduler().runTask(ultimateBingo, () -> {
                     if (player.isOnline() && !teleportTo(player, world, dx, dz)) {
-                        // Position was water/unsafe, retry from scratch
-                        teleportToRandomGround(player);
+                        // Position was water/unsafe, retry from scratch (skip cooldown)
+                        doTeleportToRandomGround(player);
                     }
                 });
             });
@@ -907,7 +914,7 @@ public class BingoFunctions
                 world.getChunkAt(cx, cz);
                 if (!teleportTo(player, world, dx, dz)) {
                     // Retry: keep trying new positions instead of giving up
-                    teleportToRandomGround(player);
+                    doTeleportToRandomGround(player);
                 }
             }, 60L);
 
