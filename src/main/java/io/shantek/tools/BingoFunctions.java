@@ -870,6 +870,7 @@ public class BingoFunctions
     /**
      * Attempts async chunk load via Paper reflection. If the async never
      * completes within 3 seconds, falls back to sync load + teleport.
+     * Uses AtomicBoolean to prevent race between async callback and timeout.
      */
     private boolean loadChunkAsync(Player player, World world,
                                     int dx, int dz, int cx, int cz) {
@@ -883,22 +884,30 @@ public class BingoFunctions
 
             if (future == null) return false;
 
-            final boolean[] done = {false};
+            final java.util.concurrent.atomic.AtomicBoolean done =
+                new java.util.concurrent.atomic.AtomicBoolean(false);
 
             future.thenAccept(chunk -> {
-                done[0] = true;
+                // CAS ensures only one path (async or timeout) handles the teleport
+                if (!done.compareAndSet(false, true)) return;
                 Bukkit.getScheduler().runTask(ultimateBingo, () -> {
                     if (player.isOnline() && !teleportTo(player, world, dx, dz)) {
+                        // Position was water/unsafe, retry from scratch
                         teleportToRandomGround(player);
                     }
                 });
             });
 
-            // Timeout: if async hasn't completed after 60 ticks, sync load
+            // Timeout: if async hasn't completed after 60 ticks, sync load + fallback
             Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
-                if (!done[0] && player.isOnline()) {
-                    world.getChunkAt(cx, cz);
-                    teleportTo(player, world, dx, dz);
+                if (!done.compareAndSet(false, true)) return; // async beat us, skip
+                if (!player.isOnline()) return;
+
+                // Sync-load the chunk on main thread
+                world.getChunkAt(cx, cz);
+                if (!teleportTo(player, world, dx, dz)) {
+                    // Retry: keep trying new positions instead of giving up
+                    teleportToRandomGround(player);
                 }
             }, 60L);
 
