@@ -379,6 +379,10 @@ public class BingoCommand implements CommandExecutor {
                     player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 400, 255, false, false, false));
                     player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 400, 128, false, false, false));
 
+                    // Start teleport immediately (runs in parallel with countdown)
+                    ultimateBingo.bingoFunctions.teleportToRandomGround(player);
+                    ultimateBingo.bingoScoreboardManager.showBoard(player);
+
                     Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
                         player.sendTitle(ChatColor.YELLOW + cardType, ChatColor.WHITE + ultimateBingo.currentCardSize.toUpperCase() + ", " + ultimateBingo.currentDifficulty.toUpperCase(), 10, 40, 10);
                     }, 20 + staggerTicks);
@@ -399,12 +403,7 @@ public class BingoCommand implements CommandExecutor {
                         Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
                             player.sendTitle(ChatColor.GREEN + "" + ChatColor.BOLD + String.valueOf(count), "", 10, 20, 10);
                             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1.0f, 1.0f);
-                            // Teleport to random ground when "3" shows so players are in position by GO
-                            if (count == 3) {
-                                ultimateBingo.bingoFunctions.teleportToRandomGround(player);
-                                ultimateBingo.bingoScoreboardManager.showBoard(player);
-                            }
-                        }, 200 + staggerTicks + 30 * (3 - count)); // Countdown starts at 5 seconds
+                        }, 200 + staggerTicks + 30 * (3 - count));
 
                     }
                     // Final "开始！" message and chime, bold and green
