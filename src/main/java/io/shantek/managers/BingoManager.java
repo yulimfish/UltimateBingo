@@ -463,7 +463,7 @@ public class BingoManager {
             ItemMeta meta = item.getItemMeta();
             if (meta == null) continue;
 
-            String title = AdvancementList.getAdvancementTitle(adv);
+            String title = ultimateBingo.getAdvancementList().getAdvancementTitle(adv);
             meta.setDisplayName(ChatColor.LIGHT_PURPLE + "成就：" + title);
 
             List<String> lore = new ArrayList<>();
@@ -769,8 +769,7 @@ public class BingoManager {
         // Build display name - show advancement title if KNOWLEDGE_BOOK
         String taskName;
         if (originalType == Material.KNOWLEDGE_BOOK && advKey != null) {
-            String[] parts = advKey.split("/");
-            taskName = parts.length > 1 ? parts[parts.length - 1].replace('_', ' ') : advKey;
+            taskName = ultimateBingo.bingoFunctions.getAdvancementName(advKey);
         } else {
             taskName = ultimateBingo.bingoFunctions.getMaterialName(originalType);
         }

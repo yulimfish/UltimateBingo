@@ -30,6 +30,7 @@ public class BingoFunctions
 
     private static final Map<String, String> MATERIAL_CN = new HashMap<>();
     private static final Map<String, String> POTION_CN = new HashMap<>();
+    private static final Map<String, String> ADVANCEMENT_CN = new HashMap<>();
 
     static {
         // 常用材料中文名
@@ -133,6 +134,14 @@ public class BingoFunctions
             {"NETHERITE_SCRAP","下界合金碎片"},{"IRON_NUGGET","铁粒"},{"GOLD_NUGGET","金粒"},{"CHARCOAL","木炭"},
             {"QUARTZ","下界石英"},{"COBBLED_DEEPSLATE","深板岩圆石"},{"POLISHED_DEEPSLATE","磨制深板岩"},
             {"CRACKED_NETHER_BRICKS","裂纹下界砖块"},{"CHISELED_NETHER_BRICKS","雕纹下界砖块"},
+            // === 补充缺失的官方翻译 ===
+            {"SPRUCE_CHEST_BOAT","云杉木运输船"},{"JUNGLE_SAPLING","丛林树苗"},
+            {"RED_DYE","红色染料"},{"YELLOW_DYE","黄色染料"},{"ORANGE_DYE","橙色染料"},
+            {"BROWN_DYE","棕色染料"},{"WHITE_DYE","白色染料"},{"PURPLE_DYE","紫色染料"},
+            {"TERRACOTTA","陶瓦"},{"ORANGE_TERRACOTTA","橙色陶瓦"},
+            {"AXOLOTL_BUCKET","美西螈桶"},{"ACTIVATOR_RAIL","激活铁轨"},
+            {"PUFFERFISH_BUCKET","河豚桶"},{"RABBIT_FOOT","兔子脚"},
+            {"MANGROVE_PROPAGULE","红树胎生苗"},{"POWDER_SNOW_BUCKET","细雪桶"},
         };
         for (String[] m : mats) MATERIAL_CN.put(m[0], m[1]);
 
@@ -148,6 +157,90 @@ public class BingoFunctions
             {"DOLPHINS_GRACE","海豚的恩惠"},{"BAD_OMEN","不祥之兆"},{"HERO_OF_THE_VILLAGE","村庄英雄"},{"DARKNESS","黑暗"},
         };
         for (String[] p : pots) POTION_CN.put(p[0], p[1]);
+
+        // === 官方成就中文名 (按 advancement key 映射) ===
+        String[][] advs = {
+            // ---- Tier 1: 简单 ----
+            {"story/root","Minecraft"},
+            {"story/mine_stone","石器时代"},
+            {"story/upgrade_tools","获得升级"},
+            {"story/smelt_iron","来硬的"},
+            {"story/obtain_armor","整装上阵"},
+            {"story/iron_tools","这不是铁镐么"},
+            {"story/deflect_arrow","抱歉，今天不行"},
+            {"adventure/root","冒险"},
+            {"adventure/kill_a_mob","怪物猎人"},
+            {"adventure/sleep_in_bed","甜蜜的梦"},
+            {"adventure/trade","成交！"},
+            {"husbandry/root","农牧业"},
+            {"husbandry/plant_seed","开荒垦地"},
+            {"husbandry/safely_harvest_honey","与蜂共舞"},
+            {"husbandry/breed_an_animal","我从哪儿来？"},
+            {"husbandry/tame_an_animal","永恒的伙伴"},
+            // ---- Tier 2: 普通 ----
+            {"story/lava_bucket","热腾腾的"},
+            {"story/form_obsidian","冰桶挑战"},
+            {"story/enter_the_nether","勇往直下"},
+            {"story/shiny_gear","用钻石包裹我"},
+            {"story/enchant_item","附魔师"},
+            {"nether/root","下界"},
+            {"nether/brew_potion","本地酿造厂"},
+            {"nether/obtain_crying_obsidian","谁在切洋葱？"},
+            {"nether/distract_piglin","金光闪闪"},
+            {"adventure/shoot_arrow","瞄准目标"},
+            {"adventure/throw_trident","抖包袱"},
+            {"husbandry/fishy_business","腥味十足的生意"},
+            {"husbandry/tactical_fishing","战术性钓鱼"},
+            {"husbandry/wax_on","涂蜡"},
+            {"husbandry/make_a_sign_glow","眼前一亮！"},
+            {"adventure/spyglass_at_parrot","那是鸟吗？"},
+            // ---- Tier 3: 困难 ----
+            {"story/cure_zombie_villager","僵尸科医生"},
+            {"story/follow_ender_eye","隔墙有眼"},
+            {"story/enter_the_end","结束了？"},
+            {"nether/find_fortress","阴森的要塞"},
+            {"nether/obtain_blaze_rod","与火共舞"},
+            {"nether/return_to_sender","见鬼去吧"},
+            {"nether/fast_travel","曲速泡"},
+            {"nether/uneasy_alliance","脆弱的同盟"},
+            {"nether/loot_bastion","战猪"},
+            {"nether/ride_strider","画船添足"},
+            {"end/root","末地"},
+            {"end/kill_dragon","解放末地"},
+            {"end/dragon_egg","下一世代"},
+            {"adventure/voluntary_exile","自我放逐"},
+            {"adventure/hero_of_the_village","村庄英雄"},
+            {"adventure/totem_of_undying","超越生死"},
+            // ---- Tier 4: 极限 ----
+            {"end/enter_end_gateway","远程折跃"},
+            {"end/find_end_city","在游戏尽头的城市"},
+            {"end/elytra","天空即为极限"},
+            {"end/levitate","这上面的风景不错"},
+            {"end/respawn_dragon","结束了……再一次……"},
+            {"nether/summon_wither","凋零山庄"},
+            {"nether/create_beacon","带信标回家"},
+            {"nether/all_potions","狂乱的鸡尾酒"},
+            {"nether/create_full_beacon","信标工程师"},
+            {"adventure/very_very_frightening","电闪雷鸣"},
+            {"adventure/spyglass_at_ghast","那是气球吗？"},
+            {"adventure/spyglass_at_dragon","那是飞机吗？"},
+            {"adventure/lightning_rod_with_villager_no_fire","电涌保护器"},
+            {"husbandry/obtain_netherite_hoe","终极奉献"},
+            {"husbandry/axolotl_in_a_bucket","最萌捕食者"},
+            {"husbandry/kill_axolotl_target","友谊的治愈力！"},
+            // ---- Tier 5: 不可能 ----
+            {"adventure/kill_all_mobs","资深怪物猎人"},
+            {"adventure/adventuring_time","探索的时光"},
+            {"husbandry/balanced_diet","均衡饮食"},
+            {"husbandry/breed_all_animals","成双成对"},
+            {"husbandry/complete_catalogue","猫科全图鉴"},
+            {"nether/all_effects","为什么会变成这样？"},
+            {"nether/explore_nether","热门景点"},
+            {"adventure/fall_from_world_height","天赐良机"},
+            {"adventure/play_jukebox_in_meadows","音乐之声"},
+            {"adventure/walk_on_powder_snow_with_leather_boots","轻功雪上飘"},
+        };
+        for (String[] a : advs) ADVANCEMENT_CN.put(a[0], a[1]);
     }
 
     public String getMaterialName(Material material) {
@@ -158,6 +251,24 @@ public class BingoFunctions
     public String getPotionName(PotionEffectType type) {
         if (type == null) return "未知";
         return POTION_CN.getOrDefault(type.getName(), type.getName().toLowerCase().replace('_', ' '));
+    }
+
+    /**
+     * Get the Chinese display name for an advancement by its key string.
+     * Expects the full advancement key (e.g. "minecraft:story/mine_stone")
+     * or just the path portion (e.g. "story/mine_stone").
+     */
+    public String getAdvancementName(String fullKey) {
+        if (fullKey == null) return "未知成就";
+        // Strip namespace prefix if present
+        String path = fullKey.contains(":") ? fullKey.split(":", 2)[1] : fullKey;
+        // Try exact match first, then with "minecraft:" prefix stripped
+        String result = ADVANCEMENT_CN.getOrDefault(path, null);
+        if (result != null) return result;
+        // Also try matching just the last segment
+        String[] parts = path.split("/");
+        String last = parts.length > 1 ? parts[parts.length - 1] : parts[0];
+        return ADVANCEMENT_CN.getOrDefault(last, last.replace('_', ' '));
     }
 
     public BingoFunctions(UltimateBingo ultimateBingo){

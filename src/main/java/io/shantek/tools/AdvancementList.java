@@ -30,16 +30,19 @@ public class AdvancementList {
     }
 
     /**
-     * Get the display title for an advancement (its in-game name).
+     * Get the Chinese display title for an advancement.
+     * Uses BingoFunctions' ADVANCEMENT_CN map with official translations.
      */
-    public static String getAdvancementTitle(Advancement adv) {
+    public static String getAdvancementTitle(Advancement adv, UltimateBingo plugin) {
         if (adv == null) return "未知成就";
-        // Use the key path as fallback display name
-        String key = adv.getKey().getKey();
-        // Convert snake_case to readable text
-        String[] parts = key.split("/");
-        String last = parts.length > 1 ? parts[parts.length - 1] : parts[0];
-        return last.replace('_', ' ');
+        return plugin.getBingoFunctions().getAdvancementName(adv.getKey().toString());
+    }
+
+    /**
+     * Convenience overload for BingoManager (needs plugin reference).
+     */
+    public String getAdvancementTitle(Advancement adv) {
+        return getAdvancementTitle(adv, plugin);
     }
 
     private void loadDefaults() {
