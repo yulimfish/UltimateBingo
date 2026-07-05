@@ -483,8 +483,21 @@ public class BingoManager {
                     long duration = System.currentTimeMillis() - ultimateBingo.gameStartTime;
                     int completed = ultimateBingo.bingoFunctions.countCompleted(inv);
                     int size = ultimateBingo.bingoManager.getSlots().length;
-                    ultimateBingo.recordBoard.addGame(player.getName(), completed, duration,
-                            size == 25 ? 5 : size == 16 ? 4 : 3);
+                    int cardSize = size == 25 ? 5 : size == 16 ? 4 : 3;
+
+                    if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")
+                            || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+                        // Cooperative modes: record for every active player
+                        for (Player target : Bukkit.getOnlinePlayers()) {
+                            if (ultimateBingo.bingoFunctions.isActivePlayer(target)) {
+                                ultimateBingo.recordBoard.addGame(
+                                        target.getName(), completed, duration, cardSize);
+                            }
+                        }
+                    } else {
+                        ultimateBingo.recordBoard.addGame(
+                                player.getName(), completed, duration, cardSize);
+                    }
 
                     // Disable the game
                     ultimateBingo.bingoStarted = false;
