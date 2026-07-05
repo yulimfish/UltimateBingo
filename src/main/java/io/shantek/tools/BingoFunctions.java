@@ -696,8 +696,12 @@ public class BingoFunctions
         World world = player.getWorld();
         Random rng = new Random();
 
-        double borderSize = world.getWorldBorder().getSize() / 2.0;
-        if (borderSize <= 0) borderSize = 3000;
+        double borderSize = ultimateBingo.teleportRadius;
+        if (borderSize <= 0) {
+            // 0 = use world border
+            borderSize = world.getWorldBorder().getSize() / 2.0;
+            if (borderSize <= 0) borderSize = 5000;
+        }
         if (borderSize > 8000) borderSize = 8000;
 
         // Generate multiple candidates and pick the best one

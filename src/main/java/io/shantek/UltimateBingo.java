@@ -74,6 +74,7 @@ public final class UltimateBingo extends JavaPlugin {
     public boolean multiWorldServer = false;
     public boolean countSoloGames = false;
     public int shuffleIntervalMinutes = 5;
+    public int teleportRadius = 5000;
 
     // Hub world settings (hidden config keys - manually added to config.yml)
     public String hubWorld = "";

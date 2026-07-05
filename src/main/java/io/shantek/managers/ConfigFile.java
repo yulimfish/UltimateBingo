@@ -65,6 +65,7 @@ public class ConfigFile {
             ultimateBingo.gameTime = getInt(config, "game-time", 0);
             ultimateBingo.loadoutType = getInt(config, "player-loadout", 0);
             ultimateBingo.shuffleIntervalMinutes = getInt(config, "shuffle-interval-minutes", 5);
+            ultimateBingo.teleportRadius = getInt(config, "teleport-radius", 5000);
 
         } catch (Exception e) {
             ultimateBingo.getLogger().log(Level.SEVERE, "重载配置文件时发生错误", e);
