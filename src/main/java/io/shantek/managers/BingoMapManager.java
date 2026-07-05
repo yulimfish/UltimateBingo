@@ -190,10 +190,12 @@ public class BingoMapManager {
     }
     
     /**
-     * Check if a task is completed for a player
-     * A task is completed if the corresponding slot in the GUI shows the tickedItemMaterial
+     * Check if a task at a given card position is completed for a player.
+     * A task is completed if the corresponding GUIslot shows the tickedItemMaterial.
+     *
+     * @param cardPosition index into the player's card list (0..N-1)
      */
-    public boolean isTaskCompleted(Player player, Material material) {
+    public boolean isTaskCompleted(Player player, int cardPosition) {
         // Get the player's inventory (GUI)
         org.bukkit.inventory.Inventory inv = null;
         
@@ -205,28 +207,13 @@ public class BingoMapManager {
             inv = plugin.bingoManager.getBingoGUIs().get(player.getUniqueId());
         }
         
-        if (inv == null) {
-            return false;
-        }
+        if (inv == null) return false;
         
-        // Get the player's original card to match materials with positions
-        List<ItemStack> playerCard = getPlayerCard(player);
-        if (playerCard == null) {
-            return false;
-        }
-        
-        // Check each card position to find this material
         int[] slots = plugin.bingoManager.getSlots();
-        for (int i = 0; i < playerCard.size() && i < slots.length; i++) {
-            ItemStack cardItem = playerCard.get(i);
-            if (cardItem != null && cardItem.getType() == material) {
-                // Found the material in the card, now check if it's completed in the GUI
-                ItemStack guiItem = inv.getItem(slots[i]);
-                return guiItem != null && guiItem.getType() == plugin.tickedItemMaterial;
-            }
-        }
+        if (slots == null || cardPosition < 0 || cardPosition >= slots.length) return false;
         
-        return false;
+        ItemStack guiItem = inv.getItem(slots[cardPosition]);
+        return guiItem != null && guiItem.getType() == plugin.tickedItemMaterial;
     }
     
     /**

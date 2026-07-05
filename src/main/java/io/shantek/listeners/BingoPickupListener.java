@@ -38,7 +38,7 @@ public class BingoPickupListener implements Listener {
                     allMaterials.addAll(materialListObject.extreme);
                     allMaterials.addAll(materialListObject.impossible);
 
-                    if (allMaterials.contains(pickedItem)) {
+                    if (allMaterials.contains(pickedItem) && pickedItem != Material.KNOWLEDGE_BOOK) {
                         Inventory bingoGUI;
 
                         if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {

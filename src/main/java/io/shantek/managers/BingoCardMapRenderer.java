@@ -56,8 +56,7 @@ public class BingoCardMapRenderer extends MapRenderer {
         int completedCount = 0;
         for (int i = 0; i < completed.length && i < card.size(); i++) {
             ItemStack it = card.get(i);
-            if (it == null) continue;
-            boolean done = mapManager.isTaskCompleted(owner, it.getType());
+            boolean done = it != null && mapManager.isTaskCompleted(owner, i);
             completed[i] = done;
             if (done) completedCount++;
         }
@@ -293,6 +292,8 @@ public class BingoCardMapRenderer extends MapRenderer {
             hue = 40; sat = 100; bri = 220;          // food yellow
         } else if (name.contains("SPONGE") || name.contains("SCUTE") || name.contains("MEMBRANE")) {
             hue = 50; sat = 80; bri = 220;           // light organic
+        } else if (name.equals("KNOWLEDGE_BOOK")) {
+            hue = 280; sat = 200; bri = 180;          // bright purple for advancement tasks
         } else {
             // Deterministic fallback based on material name hash
             int hash = Math.abs(name.hashCode());

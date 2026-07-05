@@ -2,11 +2,14 @@ package io.shantek.managers;
 
 import io.shantek.BingoCommand;
 import io.shantek.UltimateBingo;
+import io.shantek.tools.AdvancementList;
 import org.bukkit.*;
+import org.bukkit.advancement.Advancement;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -55,12 +58,9 @@ public class BingoManager {
                 break;
         }
 
-        // Generate and shuffle materials for the card
-        List<Material> availableMaterials = generateMaterials(difficultyLevel);
-        Collections.shuffle(availableMaterials);
-
-        // Get slots based on the card size
+        // Generate and shuffle tasks (materials + optional advancements) for the card
         int[] slots = determineSlotsBasedOnCardSize();
+        List<ItemStack> tasks = generateTasks(difficultyLevel, slots.length);
 
         // Distribute unique cards to each player
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -76,11 +76,9 @@ public class BingoManager {
                 // Create a new inventory for each player
                 Inventory bingoGUI = Bukkit.createInventory(null, 54, ChatColor.GREEN.toString() + ChatColor.BOLD + "宾果" + " " + ChatColor.LIGHT_PURPLE + cardInfo);
 
-                // Populate the card inventory with selected materials
-                for (int i = 0; i < slots.length && i < availableMaterials.size(); i++) {
-                    Material material = availableMaterials.get(i);
-                    ItemStack item = new ItemStack(material);
-                    bingoGUI.setItem(slots[i], item);
+                // Populate the card inventory with selected items
+                for (int i = 0; i < slots.length && i < tasks.size(); i++) {
+                    bingoGUI.setItem(slots[i], tasks.get(i));
                 }
 
                 // Add the Spyglass to the last slot if the feature is enabled
@@ -122,12 +120,9 @@ public class BingoManager {
                 break;
         }
 
-        // Generate and shuffle materials for the card
-        List<Material> availableMaterials = generateMaterials(difficultyLevel);
-        Collections.shuffle(availableMaterials);
-
-        // Get slots based on the card size
+        // Generate and shuffle tasks (materials + optional advancements) for the card
         int[] slots = determineSlotsBasedOnCardSize();
+        List<ItemStack> tasks = generateTasks(difficultyLevel, slots.length);
 
 
         // Store the string for the card type
@@ -138,11 +133,9 @@ public class BingoManager {
         // Create a new inventory for each player
         ultimateBingo.groupInventory = Bukkit.createInventory(null, 54, ChatColor.GREEN.toString() + ChatColor.BOLD + "宾果" + " " + ChatColor.LIGHT_PURPLE + cardInfo);
 
-        // Populate the card inventory with selected materials
-        for (int i = 0; i < slots.length && i < availableMaterials.size(); i++) {
-            Material material = availableMaterials.get(i);
-            ItemStack item = new ItemStack(material);
-            ultimateBingo.groupInventory.setItem(slots[i], item);
+        // Populate the card inventory with selected items
+        for (int i = 0; i < slots.length && i < tasks.size(); i++) {
+            ultimateBingo.groupInventory.setItem(slots[i], tasks.get(i));
         }
 
     }
@@ -167,12 +160,9 @@ public class BingoManager {
                 break;
         }
 
-        // Generate and shuffle materials for the card
-        List<Material> availableMaterials = generateMaterials(difficultyLevel);
-        Collections.shuffle(availableMaterials);
-
-        // Get slots based on the card size
+        // Generate and shuffle tasks (materials + optional advancements) for the card
         int[] slots = determineSlotsBasedOnCardSize();
+        List<ItemStack> tasks = generateTasks(difficultyLevel, slots.length);
 
 
         // Store the string for the card type
@@ -186,10 +176,8 @@ public class BingoManager {
         ultimateBingo.yellowTeamInventory = Bukkit.createInventory(null, 54, ChatColor.GOLD.toString() + ChatColor.BOLD + "宾果" + " " + ChatColor.LIGHT_PURPLE + cardInfo);
 
         // Populate the red team card
-        for (int i = 0; i < slots.length && i < availableMaterials.size(); i++) {
-            Material material = availableMaterials.get(i);
-            ItemStack item = new ItemStack(material);
-            ultimateBingo.redTeamInventory.setItem(slots[i], item);
+        for (int i = 0; i < slots.length && i < tasks.size(); i++) {
+            ultimateBingo.redTeamInventory.setItem(slots[i], tasks.get(i));
         }
 
         // Add the Spyglass to the last slot if the feature is enabled
@@ -202,33 +190,27 @@ public class BingoManager {
             ultimateBingo.bingoFunctions.copyInventoryContents(ultimateBingo.redTeamInventory, ultimateBingo.blueTeamInventory);
             ultimateBingo.bingoFunctions.copyInventoryContents(ultimateBingo.redTeamInventory, ultimateBingo.yellowTeamInventory);
         } else {
-            // Cards are unique - shuffle the inventory and assign them
-
-            // Populate the Yellow team card
-            Collections.shuffle(availableMaterials);
-
-            for (int i = 0; i < slots.length && i < availableMaterials.size(); i++) {
-                Material material = availableMaterials.get(i);
-                ItemStack item = new ItemStack(material);
-                ultimateBingo.yellowTeamInventory.setItem(slots[i], item);
+            // Cards are unique - generate fresh tasks for each team
+            // Yellow team
+            List<ItemStack> yellowTasks = generateTasks(difficultyLevel, slots.length);
+            for (int i = 0; i < slots.length && i < yellowTasks.size(); i++) {
+                ultimateBingo.yellowTeamInventory.setItem(slots[i], yellowTasks.get(i));
             }
 
             // Add the Spyglass to the last slot if the feature is enabled
             if (ultimateBingo.currentRevealCards) {
-                ultimateBingo.yellowTeamInventory.setItem(17, ultimateBingo.bingoFunctions.createSpyglass()); // Add Spyglass to slot 53 (last slot)
+                ultimateBingo.yellowTeamInventory.setItem(17, ultimateBingo.bingoFunctions.createSpyglass());
             }
 
-            Collections.shuffle(availableMaterials);
-            // Populate the Blue team card
-            for (int i = 0; i < slots.length && i < availableMaterials.size(); i++) {
-                Material material = availableMaterials.get(i);
-                ItemStack item = new ItemStack(material);
-                ultimateBingo.blueTeamInventory.setItem(slots[i], item);
+            // Blue team
+            List<ItemStack> blueTasks = generateTasks(difficultyLevel, slots.length);
+            for (int i = 0; i < slots.length && i < blueTasks.size(); i++) {
+                ultimateBingo.blueTeamInventory.setItem(slots[i], blueTasks.get(i));
             }
 
             // Add the Spyglass to the last slot if the feature is enabled
             if (ultimateBingo.currentRevealCards) {
-                ultimateBingo.blueTeamInventory.setItem(17, ultimateBingo.bingoFunctions.createSpyglass()); // Add Spyglass to slot 53 (last slot)
+                ultimateBingo.blueTeamInventory.setItem(17, ultimateBingo.bingoFunctions.createSpyglass());
             }
         }
 
@@ -265,8 +247,8 @@ public class BingoManager {
                 break;
         }
 
-        // Generate a single set of materials for all players
-        List<Material> sharedMaterials = generateMaterials(difficultyLevel);
+        // Determine slots once (same for all players)
+        int[] slots = determineSlotsBasedOnCardSize();
 
         // Distribute unique shuffled cards to each player
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -283,19 +265,15 @@ public class BingoManager {
                 // Create a new inventory for each player
                 Inventory bingoGUI = Bukkit.createInventory(null, 54, ChatColor.GREEN.toString() + ChatColor.BOLD + "宾果" + ChatColor.BLACK + " " + ChatColor.GOLD + cardInfo);
 
-                // Shuffle the shared materials uniquely for each player
-                List<Material> playerMaterials = new ArrayList<>(sharedMaterials);
-                Collections.shuffle(playerMaterials);
+                // Shuffle the tasks uniquely for each player
+                List<ItemStack> playerTasks = new ArrayList<>(generateTasks(difficultyLevel, slots.length));
 
                 List<ItemStack> cards = new ArrayList<>();
-                int[] slots = determineSlotsBasedOnCardSize(); // Determine slots based on card size
 
-                // Populate the bingo GUI with shuffled materials
-                for (int i = 0; i < slots.length && i < playerMaterials.size(); i++) {
-                    Material material = playerMaterials.get(i);
-                    ItemStack item = new ItemStack(material);
-                    bingoGUI.setItem(slots[i], item);
-                    cards.add(item);
+                // Populate the bingo GUI with shuffled items
+                for (int i = 0; i < slots.length && i < playerTasks.size(); i++) {
+                    bingoGUI.setItem(slots[i], playerTasks.get(i));
+                    cards.add(playerTasks.get(i));
                 }
 
                 // Add the Spyglass to the last slot if the feature is enabled
@@ -366,6 +344,118 @@ public class BingoManager {
         }
 
         return generatedMaterials;
+    }
+
+    /**
+     * Generate a mixed list of ItemStacks for a bingo card.
+     * Most are material items; a small proportion (<20%) are advancement tasks
+     * (KNOWLEDGE_BOOK with advancement key stored in PDC).
+     *
+     * @param type      difficulty level (1=easy, 2=normal, 3=hard)
+     * @param slotCount number of slots on the card
+     * @return shuffled list of ItemStacks ready to place into card slots
+     */
+    public List<ItemStack> generateTasks(int type, int slotCount) {
+        Random random = new Random();
+
+        // Step 1: Generate the base material pool
+        List<Material> baseMaterials = generateMaterials(type);
+
+        // Step 2: Convert to ItemStacks and shuffle
+        List<ItemStack> tasks = new ArrayList<>();
+        for (Material m : baseMaterials) {
+            tasks.add(new ItemStack(m));
+        }
+        Collections.shuffle(tasks, random);
+
+        // Step 3: Trim to slot count
+        if (tasks.size() > slotCount) {
+            tasks = new ArrayList<>(tasks.subList(0, slotCount));
+        }
+
+        // Step 4: Determine advancement count (<20%)
+        int maxAdv = slotCount / 5;  // floor(slotCount * 0.2)
+        int advCount = maxAdv > 0 ? random.nextInt(maxAdv + 1) : 0;
+
+        // Step 5: Replace random positions with advancement tasks
+        if (advCount > 0) {
+            List<ItemStack> advItems = createAdvancementItems(type, advCount);
+            List<Integer> indices = new ArrayList<>();
+            for (int i = 0; i < slotCount; i++) indices.add(i);
+            Collections.shuffle(indices, random);
+
+            for (int i = 0; i < advCount && i < indices.size() && i < advItems.size(); i++) {
+                int targetIdx = indices.get(i);
+                // Don't replace if already an advancement (shouldn't happen but safety)
+                if (tasks.get(targetIdx).getType() != Material.KNOWLEDGE_BOOK) {
+                    tasks.set(targetIdx, advItems.get(i));
+                }
+            }
+        }
+
+        // Step 6: Pad if somehow short (shouldn't happen)
+        while (tasks.size() < slotCount) {
+            tasks.add(new ItemStack(Material.PAPER));
+        }
+
+        return tasks;
+    }
+
+    /**
+     * Create KNOWLEDGE_BOOK ItemStacks representing advancement tasks.
+     * Each stores the advancement key in PersistentDataContainer for later lookup.
+     */
+    private List<ItemStack> createAdvancementItems(int type, int count) {
+        List<ItemStack> items = new ArrayList<>();
+        Map<Integer, List<Advancement>> advPool = ultimateBingo.getAdvancementList().getAdvancements();
+        if (advPool == null || advPool.isEmpty()) return items;
+
+        Random random = new Random();
+        NamespacedKey pdcKey = new NamespacedKey(ultimateBingo, "bingo_adv");
+
+        // Collect all available advancements from appropriate difficulty tiers
+        List<Advancement> available = new ArrayList<>();
+        int[] tiers = switch (type) {
+            case 1 -> new int[]{1, 2};
+            case 2 -> new int[]{1, 2, 3, 4};
+            case 3 -> new int[]{2, 3, 4, 5};
+            default -> new int[]{1, 2};
+        };
+        for (int tier : tiers) {
+            List<Advancement> tierList = advPool.get(tier);
+            if (tierList != null) available.addAll(tierList);
+        }
+
+        if (available.isEmpty()) return items;
+
+        // Pick unique advancements
+        List<Advancement> chosen = new ArrayList<>();
+        List<Advancement> pool = new ArrayList<>(available);
+        for (int i = 0; i < count && !pool.isEmpty(); i++) {
+            int idx = random.nextInt(pool.size());
+            chosen.add(pool.remove(idx));
+        }
+
+        // Build ItemStacks
+        for (Advancement adv : chosen) {
+            ItemStack item = new ItemStack(Material.KNOWLEDGE_BOOK);
+            ItemMeta meta = item.getItemMeta();
+            if (meta == null) continue;
+
+            String title = AdvancementList.getAdvancementTitle(adv);
+            meta.setDisplayName(ChatColor.LIGHT_PURPLE + "成就：" + title);
+
+            List<String> lore = new ArrayList<>();
+            lore.add(ChatColor.GRAY + "完成此成就以标记格子");
+            lore.add(ChatColor.DARK_GRAY + adv.getKey().toString());
+            meta.setLore(lore);
+
+            meta.getPersistentDataContainer().set(pdcKey, PersistentDataType.STRING, adv.getKey().toString());
+            item.setItemMeta(meta);
+            items.add(item);
+        }
+
+        return items;
     }
 
     public void markItemAsComplete(Player player, Material completedMaterial) {
@@ -613,6 +703,212 @@ public class BingoManager {
 
                 }
                 break;
+            }
+        }
+    }
+
+    /**
+     * Mark a specific bingo card slot as complete.
+     * Used by BingoAdvancementListener for advancement-based tasks (KNOWLEDGE_BOOK slots).
+     * For material-based tasks, use {@link #markItemAsComplete} instead.
+     */
+    public void markSlotAsComplete(Player player, int slotIndex) {
+        Inventory inv;
+        if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
+            inv = ultimateBingo.groupInventory;
+        } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+            inv = ultimateBingo.bingoFunctions.getTeamInventory(player);
+        } else {
+            inv = getBingoGUIs().get(player.getUniqueId());
+        }
+
+        if (inv == null) return;
+
+        ItemStack item = inv.getItem(slotIndex);
+        if (item == null) return;
+
+        // Don't double-complete
+        if (item.getType() == ultimateBingo.tickedItemMaterial) return;
+
+        Material originalType = item.getType();
+
+        // Read advancement key BEFORE changing type (PDC may be lost on setType)
+        String advKey = null;
+        if (originalType == Material.KNOWLEDGE_BOOK) {
+            ItemMeta oldMeta = item.getItemMeta();
+            if (oldMeta != null) {
+                advKey = oldMeta.getPersistentDataContainer()
+                    .get(new NamespacedKey(ultimateBingo, "bingo_adv"), PersistentDataType.STRING);
+            }
+        }
+
+        item.setType(ultimateBingo.tickedItemMaterial);
+        ItemMeta meta = item.getItemMeta();
+
+        // Build display name - show advancement title if KNOWLEDGE_BOOK
+        String taskName;
+        if (originalType == Material.KNOWLEDGE_BOOK && advKey != null) {
+            String[] parts = advKey.split("/");
+            taskName = parts.length > 1 ? parts[parts.length - 1].replace('_', ' ') : advKey;
+        } else {
+            taskName = ultimateBingo.bingoFunctions.getMaterialName(originalType);
+        }
+
+        if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")
+                || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+            meta.setDisplayName(ChatColor.GREEN + player.getName() + "：" + taskName);
+        } else {
+            meta.setDisplayName(ChatColor.GREEN + "已完成：" + taskName);
+        }
+        item.setItemMeta(meta);
+
+        // Update map and scoreboard
+        ultimateBingo.bingoMapManager.updatePlayerMap(player);
+        ultimateBingo.bingoScoreboardManager.updateBoard(player);
+
+        // Top up rockets
+        ultimateBingo.bingoFunctions.topUpFirstFireworkRocketsStack(player);
+
+        String displayName = taskName;
+        player.sendMessage(ChatColor.GREEN + "你勾选了 " + ChatColor.GOLD + displayName + ChatColor.GREEN);
+
+        if (ultimateBingo.currentGameMode.equals("speedrun")
+                || ultimateBingo.currentGameMode.equals("group")
+                || ultimateBingo.currentGameMode.equals("teams")) {
+            ultimateBingo.bingoFunctions.resetIndividualPlayer(player, false);
+        }
+
+        // Play sound and broadcast to others
+        for (Player target : Bukkit.getOnlinePlayers()) {
+            if (ultimateBingo.bingoFunctions.isActivePlayer(target)) {
+                target.playSound(target.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 10, 5);
+
+                if (!target.equals(player)) {
+                    if (ultimateBingo.currentRevealCards) {
+                        if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
+                            target.sendMessage(ChatColor.GREEN + player.getName() + ChatColor.WHITE + " 完成了 " + ChatColor.GREEN + displayName);
+                        } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+                            String team = ultimateBingo.bingoFunctions.getTeam(player);
+                            ChatColor teamColor = "red".equalsIgnoreCase(team) ? ChatColor.RED
+                                    : "blue".equalsIgnoreCase(team) ? ChatColor.BLUE : ChatColor.YELLOW;
+                            target.sendMessage(teamColor + player.getName() + ChatColor.WHITE + " 完成了 " + teamColor + displayName);
+                        } else {
+                            target.sendMessage(ChatColor.GREEN + player.getName() + ChatColor.WHITE + " 完成了 " + ChatColor.GREEN + displayName);
+                        }
+                    } else {
+                        target.sendMessage(ChatColor.GREEN + player.getName() + ChatColor.WHITE + " 勾选了一个宾果物品。");
+                    }
+                }
+            }
+        }
+
+        // Check for bingo
+        String cardSize = ultimateBingo.currentCardSize;
+        boolean hasBingo = false;
+
+        if (ultimateBingo.currentFullCard) {
+            if (ultimateBingo.cardTypes.checkFullCard(player)) hasBingo = true;
+        } else {
+            switch (cardSize.toLowerCase()) {
+                case "small":
+                    if (ultimateBingo.cardTypes.checkSmallCardBingo(player)) hasBingo = true;
+                    break;
+                case "medium":
+                    if (ultimateBingo.cardTypes.checkMediumCardBingo(player)) hasBingo = true;
+                    break;
+                case "large":
+                    if (ultimateBingo.cardTypes.checkLargeCardBingo(player)) hasBingo = true;
+                    break;
+            }
+        }
+
+        if (hasBingo) {
+            long duration = System.currentTimeMillis() - ultimateBingo.gameStartTime;
+            int completed = ultimateBingo.bingoFunctions.countCompleted(inv);
+            int size = ultimateBingo.bingoManager.getSlots().length;
+            int cSize = size == 25 ? 5 : size == 16 ? 4 : 3;
+
+            if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")
+                    || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+                for (Player target : Bukkit.getOnlinePlayers()) {
+                    if (ultimateBingo.bingoFunctions.isActivePlayer(target)) {
+                        ultimateBingo.recordBoard.addGame(target.getName(), completed, duration, cSize);
+                    }
+                }
+            } else {
+                ultimateBingo.recordBoard.addGame(player.getName(), completed, duration, cSize);
+            }
+
+            ultimateBingo.bingoStarted = false;
+
+            if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")
+                    || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+                for (Player target : Bukkit.getOnlinePlayers()) {
+                    if (ultimateBingo.bingoFunctions.isActivePlayer(target)) {
+                        ultimateBingo.getLeaderboard().addGameResult(
+                                target.getUniqueId(), cardSize, ultimateBingo.currentFullCard,
+                                ultimateBingo.currentDifficulty, ultimateBingo.currentGameMode, true);
+                    }
+                }
+            } else {
+                if (ultimateBingo.bingoFunctions.countActivePlayers() > 1 || ultimateBingo.countSoloGames) {
+                    ultimateBingo.getLeaderboard().addGameResult(
+                            player.getUniqueId(), cardSize, ultimateBingo.currentFullCard,
+                            ultimateBingo.currentDifficulty, ultimateBingo.currentGameMode, true);
+                    for (Player target : Bukkit.getOnlinePlayers()) {
+                        if (ultimateBingo.bingoFunctions.isActivePlayer(target) && !target.equals(player)) {
+                            ultimateBingo.getLeaderboard().addGameResult(
+                                    target.getUniqueId(), cardSize, ultimateBingo.currentFullCard,
+                                    ultimateBingo.currentDifficulty, ultimateBingo.currentGameMode, false);
+                        }
+                    }
+                }
+            }
+
+            if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
+                ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(
+                        ChatColor.GOLD + player.getName() + ChatColor.GREEN + " 完成了最后一项任务！干得好，团队！");
+                for (Player target : Bukkit.getOnlinePlayers()) {
+                    if (ultimateBingo.bingoFunctions.isActivePlayer(target)) {
+                        target.playSound(target.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1.0f, 1.0f);
+                        target.sendTitle("宾果！", ChatColor.GREEN.toString() + ChatColor.BOLD + "呜呼！");
+                    }
+                }
+            } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
+                String team = ultimateBingo.bingoFunctions.getTeam(player);
+                ChatColor tc = "red".equalsIgnoreCase(team) ? ChatColor.RED
+                        : "blue".equalsIgnoreCase(team) ? ChatColor.BLUE : ChatColor.YELLOW;
+                ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(
+                        tc + player.getName() + ChatColor.WHITE + " 完成了最后一项任务！" + tc + team.toUpperCase());
+                for (Player target : Bukkit.getOnlinePlayers()) {
+                    if (ultimateBingo.bingoFunctions.isActivePlayer(target)) {
+                        target.playSound(target.getLocation(), Sound.ENTITY_GHAST_SCREAM, 1.0f, 1.0f);
+                        target.sendTitle(team.toUpperCase() + " 宾果了！",
+                                ChatColor.GREEN.toString() + ChatColor.BOLD + "呜呼！");
+                    }
+                }
+            } else {
+                ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(
+                        ChatColor.GOLD + player.getName() + ChatColor.GREEN + " 宾果了！干得漂亮！");
+                for (Player target : Bukkit.getOnlinePlayers()) {
+                    if (ultimateBingo.bingoFunctions.isActivePlayer(target)) {
+                        target.playSound(target.getLocation(), Sound.ENTITY_ENDERMAN_SCREAM, 1.0f, 1.0f);
+                        target.sendTitle(ChatColor.GOLD + player.getName() + ChatColor.GREEN + " 宾果了！",
+                                ChatColor.GREEN.toString() + ChatColor.BOLD + "呜呼！");
+                    }
+                }
+            }
+
+            ultimateBingo.bingoCommand.stopBingo(player, true);
+        } else {
+            if (ultimateBingo.currentGameMode.equalsIgnoreCase("brewdash")
+                    && ultimateBingo.bingoFunctions.countActivePlayers() > 1) {
+                for (PotionEffect effect : player.getActivePotionEffects()) {
+                    player.removePotionEffect(effect.getType());
+                }
+                int seconds = ultimateBingo.currentDifficulty.equalsIgnoreCase("easy") ? 20
+                        : ultimateBingo.currentDifficulty.equalsIgnoreCase("normal") ? 40 : 60;
+                ultimateBingo.bingoFunctions.applyRandomNegativePotionToOtherPlayers(player, seconds);
             }
         }
     }

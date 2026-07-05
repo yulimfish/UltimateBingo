@@ -8,6 +8,7 @@ package io.shantek;
 import io.shantek.listeners.*;
 import io.shantek.managers.*;
 import io.shantek.tools.MaterialList;
+import io.shantek.tools.AdvancementList;
 import io.shantek.tools.BingoFunctions;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -27,6 +28,7 @@ import org.bukkit.map.MapPalette;
 public final class UltimateBingo extends JavaPlugin {
     public BingoManager bingoManager;
     private MaterialList materialList;
+    private AdvancementList advancementList;
     public BingoFunctions bingoFunctions;
     public BingoGameGUIManager bingoGameGUIManager;
     public BingoPlayerGUIManager bingoPlayerGUIManager;
@@ -146,6 +148,7 @@ public final class UltimateBingo extends JavaPlugin {
 
         // Continue with other managers
         materialList = new MaterialList(this);
+        advancementList = new AdvancementList(this);
         bingoGameGUIManager = new BingoGameGUIManager(this);
         bingoPlayerGUIManager = new BingoPlayerGUIManager(this);
         bingoMapManager = new BingoMapManager(this);
@@ -187,6 +190,7 @@ public final class UltimateBingo extends JavaPlugin {
         // Register each listener with the Bukkit plugin manager
         Bukkit.getPluginManager().registerEvents(new EntityDamageListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BingoPickupListener(this), this);
+        Bukkit.getPluginManager().registerEvents(new BingoAdvancementListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BingoInteractListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BingoMapInteractListener(this), this);
         Bukkit.getPluginManager().registerEvents(new BingoInventoryCloseListener(this), this);
@@ -205,6 +209,10 @@ public final class UltimateBingo extends JavaPlugin {
 
     public MaterialList getMaterialList(){
         return materialList;
+    }
+
+    public AdvancementList getAdvancementList() {
+        return advancementList;
     }
 
     public Leaderboard getLeaderboard() {
