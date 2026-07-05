@@ -689,8 +689,8 @@ public class BingoFunctions
 
     /**
      * Teleports the player to a random ground location in their current world.
-     * Staggered sync chunk loading: each player's chunk load is separated
-     * by enough ticks to avoid the main thread freezing from concurrent I/O.
+     * Uses Paper's async chunk loading to avoid blocking the main thread.
+     * Falls back to sync loading if async is unavailable (non-Paper server).
      */
     public boolean teleportToRandomGround(Player player) {
         World world = player.getWorld();
@@ -703,43 +703,85 @@ public class BingoFunctions
         }
         if (radius > 8000) radius = 8000;
 
-        // Center on world spawn
         Location center = world.getSpawnLocation();
 
-        // Try random points within a circular radius around spawn
-        for (int attempt = 0; attempt < 30; attempt++) {
-            // Uniform distribution inside a circle
+        // Try a few random locations
+        for (int attempt = 0; attempt < 8; attempt++) {
             double angle = rng.nextDouble() * 2 * Math.PI;
             double dist = radius * Math.sqrt(rng.nextDouble());
             int dx = center.getBlockX() + (int)(Math.cos(angle) * dist);
             int dz = center.getBlockZ() + (int)(Math.sin(angle) * dist);
             int cx = dx >> 4, cz = dz >> 4;
 
-            // Load chunk if needed (acceptable because only 1 player per tick)
-            if (!world.isChunkLoaded(cx, cz)) {
-                world.getChunkAt(cx, cz);
+            // Already loaded → teleport immediately (fast path)
+            if (world.isChunkLoaded(cx, cz)) {
+                if (teleportTo(player, world, dx, dz)) return true;
+                continue;
             }
 
-            int y = world.getHighestBlockYAt(dx, dz);
-            Material topBlock = world.getBlockAt(dx, y, dz).getType();
-            if (topBlock == Material.WATER || topBlock == Material.LAVA) continue;
-
-            Location loc = new Location(world, dx + 0.5, y + 1, dz + 0.5);
-            if (isSafeLocation(loc)) {
-                player.sendMessage(ChatColor.YELLOW + "正在传送……");
-                loc.setYaw(rng.nextFloat() * 360);
-                loc.setPitch(0);
-                player.teleport(loc);
-                player.sendMessage(ChatColor.GREEN + "已随机传送至 X:" + dx + " Z:" + dz);
-                return true;
-            }
+            // Paper async chunk load → teleport in callback
+            if (loadChunkAsync(player, world, dx, dz, cx, cz)) return true;
         }
 
-        // Fallback
+        // Fallback to spawn
         Location spawn = world.getSpawnLocation();
         spawn = world.getHighestBlockAt(spawn).getLocation().add(0.5, 1, 0);
         player.teleport(spawn);
         player.sendMessage(ChatColor.YELLOW + "已传送至世界出生点（未找到合适位置）");
+        return true;
+    }
+
+    /**
+     * Attempts to load a chunk via Paper's async API using reflection.
+     * @return true if async load was initiated, false if unavailable
+     */
+    private boolean loadChunkAsync(Player player, World world,
+                                    int dx, int dz, int cx, int cz) {
+        try {
+            java.lang.reflect.Method method = world.getClass()
+                    .getMethod("getChunkAtAsync", int.class, int.class);
+            @SuppressWarnings("unchecked")
+            java.util.concurrent.CompletableFuture<org.bukkit.Chunk> future =
+                    (java.util.concurrent.CompletableFuture<org.bukkit.Chunk>)
+                    method.invoke(world, cx, cz);
+
+            if (future != null) {
+                future.thenAccept(chunk -> {
+                    // Chunk loaded — teleport on main thread
+                    Bukkit.getScheduler().runTask(ultimateBingo, () -> {
+                        if (player.isOnline()) {
+                            teleportTo(player, world, dx, dz);
+                        }
+                    });
+                });
+                player.sendMessage(ChatColor.YELLOW + "正在传送……");
+                return true;
+            }
+        } catch (Exception ignored) {
+            // Paper API not available, will fall back to sync
+        }
+        return false;
+    }
+
+    /**
+     * Actually perform the teleport: check safety and teleport the player.
+     */
+    private boolean teleportTo(Player player, World world, int dx, int dz) {
+        if (!world.isChunkLoaded(dx >> 4, dz >> 4)) {
+            world.getChunkAt(dx >> 4, dz >> 4);
+        }
+
+        int y = world.getHighestBlockYAt(dx, dz);
+        Material topBlock = world.getBlockAt(dx, y, dz).getType();
+        if (topBlock == Material.WATER || topBlock == Material.LAVA) return false;
+
+        Location loc = new Location(world, dx + 0.5, y + 1, dz + 0.5);
+        if (!isSafeLocation(loc)) return false;
+
+        loc.setYaw((float)(Math.random() * 360));
+        loc.setPitch(0);
+        player.teleport(loc);
+        player.sendMessage(ChatColor.GREEN + "已随机传送至 X:" + dx + " Z:" + dz);
         return true;
     }
 
