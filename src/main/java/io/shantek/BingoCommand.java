@@ -337,9 +337,6 @@ public class BingoCommand implements CommandExecutor {
             // Clear the player list
             ultimateBingo.bingoFunctions.clearPlayers();
 
-            // Clear previous team assignments
-            ultimateBingo.bingoFunctions.clearTeams();
-
             // Clear any data prior to the new game
             bingoManager.clearData();
 
