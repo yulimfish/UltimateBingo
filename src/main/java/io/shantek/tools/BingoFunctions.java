@@ -716,6 +716,9 @@ public class BingoFunctions
 
         // Progressively shrink radius if no safe spot found
         for (double radius = baseRadius; radius >= 250; radius /= 2) {
+            // Decide approach: async-load distant chunks, use loaded ones nearby
+            boolean preferAsync = radius >= baseRadius / 2; // first half-radius tiers → async
+
             for (int attempt = 0; attempt < 8; attempt++) {
                 double angle = rng.nextDouble() * 2 * Math.PI;
                 double dist = radius * Math.sqrt(rng.nextDouble());
@@ -723,11 +726,19 @@ public class BingoFunctions
                 int dz = center.getBlockZ() + (int)(Math.sin(angle) * dist);
                 int cx = dx >> 4, cz = dz >> 4;
 
+                // For distant chunks: always prefer async loading
+                if (preferAsync && !world.isChunkLoaded(cx, cz)) {
+                    if (loadChunkAsync(player, world, dx, dz, cx, cz)) return true;
+                    continue; // try another location while async loads
+                }
+
+                // For nearby or already-loaded chunks: direct teleport
                 if (world.isChunkLoaded(cx, cz)) {
                     if (teleportTo(player, world, dx, dz)) return true;
                     continue;
                 }
 
+                // Try async as fallback
                 if (loadChunkAsync(player, world, dx, dz, cx, cz)) return true;
             }
 
