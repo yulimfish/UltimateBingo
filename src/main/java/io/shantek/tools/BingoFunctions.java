@@ -769,11 +769,23 @@ public class BingoFunctions
     }
 
     /**
-     * Actually perform the teleport: check safety and teleport the player.
+     * Actually perform the teleport: check safety, pre-warm surroundings, then teleport.
      */
     private boolean teleportTo(Player player, World world, int dx, int dz) {
-        if (!world.isChunkLoaded(dx >> 4, dz >> 4)) {
-            world.getChunkAt(dx >> 4, dz >> 4);
+        // Ensure the target chunk is loaded
+        int cx = dx >> 4, cz = dz >> 4;
+        if (!world.isChunkLoaded(cx, cz)) {
+            world.getChunkAt(cx, cz);
+        }
+
+        // Pre-warm a 3×3 chunk area around the target to avoid post-teleport freeze
+        for (int ox = -1; ox <= 1; ox++) {
+            for (int oz = -1; oz <= 1; oz++) {
+                int pcx = cx + ox, pcz = cz + oz;
+                if (!world.isChunkLoaded(pcx, pcz)) {
+                    world.getChunkAt(pcx, pcz);
+                }
+            }
         }
 
         int y = world.getHighestBlockYAt(dx, dz);
