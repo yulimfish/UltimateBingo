@@ -410,7 +410,8 @@ public class BingoCommand implements CommandExecutor {
             // Store a reference to all online players
             List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
 
-            // Display initial messages — stagger players to avoid concurrent chunk-gen
+            // Stagger ALL heavy operations per-player to avoid concurrent chunk-gen
+            // (teleport, scoreboard, freeze, countdown) — each player 0.5s apart
             for (int pi = 0; pi < onlinePlayers.size(); pi++) {
                 Player player = onlinePlayers.get(pi);
                 final int staggerTicks = pi * 10; // each player delayed 0.5s more
@@ -425,15 +426,17 @@ public class BingoCommand implements CommandExecutor {
 
                 if (activePlayer) {
 
-                    // Freeze players - use both walk speed and strong slowness + jump boost removal
-                    player.setWalkSpeed(0);
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 400, 255, false, false, false));
-                    player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 400, 128, false, false, false));
+                    // Freeze + teleport + scoreboard — all staggered to avoid concurrent chunk-gen
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        player.setWalkSpeed(0);
+                        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 400, 255, false, false, false));
+                        player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 400, 128, false, false, false));
 
-                    // Start teleport immediately (runs in parallel with countdown)
-                    ultimateBingo.bingoFunctions.teleportToRandomGround(player);
-                    ultimateBingo.bingoScoreboardManager.showBoard(player);
+                        ultimateBingo.bingoFunctions.teleportToRandomGround(player);
+                        ultimateBingo.bingoScoreboardManager.showBoard(player);
+                    }, staggerTicks);
 
+                    // Title messages — already staggered, keep as-is
                     Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
                         player.sendTitle(ChatColor.YELLOW + cardType, ChatColor.WHITE + ultimateBingo.currentCardSize.toUpperCase() + ", " + ultimateBingo.currentDifficulty.toUpperCase(), 10, 40, 10);
                     }, 20 + staggerTicks);
