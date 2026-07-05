@@ -689,8 +689,8 @@ public class BingoFunctions
 
     /**
      * Teleports the player to a random ground location in their current world.
-     * Only searches already-loaded chunks to avoid blocking the main thread
-     * with synchronous chunk generation. Falls back to world spawn if needed.
+     * Staggered sync chunk loading: each player's chunk load is separated
+     * by enough ticks to avoid the main thread freezing from concurrent I/O.
      */
     public boolean teleportToRandomGround(Player player) {
         World world = player.getWorld();
@@ -698,27 +698,26 @@ public class BingoFunctions
 
         double borderSize = world.getWorldBorder().getSize() / 2.0;
         if (borderSize <= 0) borderSize = 3000;
-        if (borderSize > 5000) borderSize = 5000;
+        if (borderSize > 8000) borderSize = 8000;
 
-        // Try to find a safe location in an already-loaded chunk
+        // Generate multiple candidates and pick the best one
         for (int attempt = 0; attempt < 30; attempt++) {
             int dx = (int)(rng.nextDouble() * borderSize * 2 - borderSize);
             int dz = (int)(rng.nextDouble() * borderSize * 2 - borderSize);
-
             int cx = dx >> 4, cz = dz >> 4;
 
-            // Skip if chunk is not loaded — never force-load on main thread
-            if (!world.isChunkLoaded(cx, cz)) continue;
+            // Load chunk if needed (acceptable because only 1 player per tick)
+            if (!world.isChunkLoaded(cx, cz)) {
+                world.getChunkAt(cx, cz);
+            }
 
             int y = world.getHighestBlockYAt(dx, dz);
-
-            // Skip water/lava (chunk is loaded so getBlockAt is cheap)
             Material topBlock = world.getBlockAt(dx, y, dz).getType();
             if (topBlock == Material.WATER || topBlock == Material.LAVA) continue;
 
             Location loc = new Location(world, dx + 0.5, y + 1, dz + 0.5);
             if (isSafeLocation(loc)) {
-                player.sendMessage(ChatColor.YELLOW + "正在传送，服务器可能会短暂卡顿……");
+                player.sendMessage(ChatColor.YELLOW + "正在传送……");
                 loc.setYaw(rng.nextFloat() * 360);
                 loc.setPitch(0);
                 player.teleport(loc);
@@ -727,11 +726,11 @@ public class BingoFunctions
             }
         }
 
-        // Fallback: teleport to world spawn
+        // Fallback
         Location spawn = world.getSpawnLocation();
         spawn = world.getHighestBlockAt(spawn).getLocation().add(0.5, 1, 0);
         player.teleport(spawn);
-        player.sendMessage(ChatColor.YELLOW + "已传送至世界出生点（未找到已加载的安全位置）");
+        player.sendMessage(ChatColor.YELLOW + "已传送至世界出生点（未找到合适位置）");
         return true;
     }
 

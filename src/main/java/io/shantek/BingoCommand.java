@@ -356,8 +356,10 @@ public class BingoCommand implements CommandExecutor {
             // Store a reference to all online players
             List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
 
-            // Display initial messages
-            onlinePlayers.forEach(player -> {
+            // Display initial messages — stagger players to avoid concurrent chunk-gen
+            for (int pi = 0; pi < onlinePlayers.size(); pi++) {
+                Player player = onlinePlayers.get(pi);
+                final int staggerTicks = pi * 10; // each player delayed 0.5s more
 
                 boolean activePlayer = true;
 
@@ -376,15 +378,15 @@ public class BingoCommand implements CommandExecutor {
 
                     Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
                         player.sendTitle(ChatColor.YELLOW + cardType, ChatColor.WHITE + ultimateBingo.currentCardSize.toUpperCase() + ", " + ultimateBingo.currentDifficulty.toUpperCase(), 10, 40, 10);
-                    }, 20);
+                    }, 20 + staggerTicks);
 
                     Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
                         player.sendTitle(ChatColor.YELLOW + bingoType, ChatColor.WHITE + "公开模式 " + revealType, 10, 40, 10);
-                    }, 80);
+                    }, 80 + staggerTicks);
 
                     Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
                         player.sendTitle(ChatColor.YELLOW + ultimateBingo.currentGameMode.toUpperCase(), ChatColor.WHITE + loadoutType.toUpperCase(), 10, 40, 10);
-                    }, 140);
+                    }, 140 + staggerTicks);
 
                     // Countdown with chimes, with bold and colorful text
                     for (int i = 3; i > 0; i--) {
@@ -399,7 +401,7 @@ public class BingoCommand implements CommandExecutor {
                                 ultimateBingo.bingoFunctions.teleportToRandomGround(player);
                                 ultimateBingo.bingoScoreboardManager.showBoard(player);
                             }
-                        }, 200 + 30 * (3 - count)); // Countdown starts at 5 seconds
+                        }, 200 + staggerTicks + 30 * (3 - count)); // Countdown starts at 5 seconds
 
                     }
                     // Final "开始！" message and chime, bold and green
@@ -425,10 +427,10 @@ public class BingoCommand implements CommandExecutor {
                         if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
                             ultimateBingo.bingoFunctions.notifyActivePlayers(player);
                         }
-                    }, 290); // 1.5 seconds after "1"
+                    }, 290 + staggerTicks); // 1.5 seconds after "1"
 
                 }
-            });
+            }
 
             // Set the game timer for ending the game and game perks if enabled
             ultimateBingo.bingoFunctions.setGameTimer();
@@ -512,28 +514,32 @@ public class BingoCommand implements CommandExecutor {
 
 
             // Handle player teleportation and give bingo cards after the countdown
-            onlinePlayers.forEach(player -> {
+            for (int pi2 = 0; pi2 < onlinePlayers.size(); pi2++) {
+                Player p2 = onlinePlayers.get(pi2);
+                final int sTicks = pi2 * 10;
 
                 Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
 
-                    if (ultimateBingo.bingoFunctions.isActivePlayer(player)) {
-                        ultimateBingo.bingoFunctions.giveBingoCard(player);
+                    if (ultimateBingo.bingoFunctions.isActivePlayer(p2)) {
+                        ultimateBingo.bingoFunctions.giveBingoCard(p2);
                         ultimateBingo.bingoCardActive = true;
 
                         // Equip the player loadout inventory
                         if (ultimateBingo.currentLoadoutType > 0) {
-                            ultimateBingo.bingoFunctions.equipLoadoutGear(player, ultimateBingo.currentLoadoutType);
+                            ultimateBingo.bingoFunctions.equipLoadoutGear(p2, ultimateBingo.currentLoadoutType);
                         }
 
                         // Also give them night vision
                         if (ultimateBingo.currentGameMode.equals("speedrun") || ultimateBingo.currentGameMode.equals("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
-                            player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1, false, false, true));
+                            p2.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1, false, false, true));
                         }
 
                         // Add them to the player list
-                        ultimateBingo.bingoFunctions.addPlayer(player.getUniqueId());
+                        ultimateBingo.bingoFunctions.addPlayer(p2.getUniqueId());
                     }
-                }, 310); // 210 ticks = 10.5 seconds, just after the "开始！"
+                }, 310 + sTicks);
+
+            }
 
             });
         }
