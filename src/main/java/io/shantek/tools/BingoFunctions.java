@@ -820,6 +820,14 @@ public class BingoFunctions
      * by async/timeout callbacks inside the same teleport session.
      */
     private boolean doTeleportToRandomGround(Player player) {
+        return doTeleportToRandomGround(player, 0);
+    }
+
+    /**
+     * Internal teleport with retry-depth tracking. After 5 retries, forces
+     * loaded-chunk-only mode to guarantee eventual convergence to spawn.
+     */
+    private boolean doTeleportToRandomGround(Player player, int retryDepth) {
         World world = player.getWorld();
         Random rng = new Random();
 
@@ -834,8 +842,8 @@ public class BingoFunctions
 
         // Progressively shrink radius if no safe spot found
         for (double radius = baseRadius; radius >= 250; radius /= 2) {
-            // Decide approach: async-load distant chunks, use loaded ones nearby
-            boolean preferAsync = radius >= baseRadius / 2; // first half-radius tiers → async
+            // After 5 retries, skip async to guarantee convergence to spawn fallback
+            boolean preferAsync = retryDepth < 5 && radius >= baseRadius / 2;
 
             for (int attempt = 0; attempt < 8; attempt++) {
                 double angle = rng.nextDouble() * 2 * Math.PI;
@@ -846,7 +854,7 @@ public class BingoFunctions
 
                 // For distant chunks: always prefer async loading
                 if (preferAsync && !world.isChunkLoaded(cx, cz)) {
-                    if (loadChunkAsync(player, world, dx, dz, cx, cz)) return true;
+                    if (loadChunkAsync(player, world, dx, dz, cx, cz, retryDepth)) return true;
                     continue; // try another location while async loads
                 }
 
@@ -857,7 +865,7 @@ public class BingoFunctions
                 }
 
                 // Try async as fallback
-                if (loadChunkAsync(player, world, dx, dz, cx, cz)) return true;
+                if (loadChunkAsync(player, world, dx, dz, cx, cz, retryDepth)) return true;
             }
 
             // Next tier — let the player know we're still trying
@@ -880,7 +888,8 @@ public class BingoFunctions
      * Uses AtomicBoolean to prevent race between async callback and timeout.
      */
     private boolean loadChunkAsync(Player player, World world,
-                                    int dx, int dz, int cx, int cz) {
+                                    int dx, int dz, int cx, int cz,
+                                    int retryDepth) {
         try {
             java.lang.reflect.Method method = world.getClass()
                     .getMethod("getChunkAtAsync", int.class, int.class);
@@ -900,7 +909,7 @@ public class BingoFunctions
                 Bukkit.getScheduler().runTask(ultimateBingo, () -> {
                     if (player.isOnline() && !teleportTo(player, world, dx, dz)) {
                         // Position was water/unsafe, retry from scratch (skip cooldown)
-                        doTeleportToRandomGround(player);
+                        doTeleportToRandomGround(player, retryDepth + 1);
                     }
                 });
             });
@@ -914,7 +923,7 @@ public class BingoFunctions
                 world.getChunkAt(cx, cz);
                 if (!teleportTo(player, world, dx, dz)) {
                     // Retry: keep trying new positions instead of giving up
-                    doTeleportToRandomGround(player);
+                    doTeleportToRandomGround(player, retryDepth + 1);
                 }
             }, 60L);
 
