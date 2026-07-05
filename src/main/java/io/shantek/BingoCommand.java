@@ -611,8 +611,15 @@ public class BingoCommand implements CommandExecutor {
             for (Player p : players) {
                 if (ultimateBingo.bingoFunctions.isActivePlayer(p)) {
                     activeBingoPlayers.add(p);
-                    p.teleport(ultimateBingo.hubSpawnLocation);
                 }
+            }
+
+            // Stagger teleports: 3 ticks per player to avoid spike
+            for (int i = 0; i < activeBingoPlayers.size(); i++) {
+                Player p = activeBingoPlayers.get(i);
+                final int delay = i * 3;
+                Bukkit.getScheduler().runTaskLater(ultimateBingo,
+                        () -> p.teleport(ultimateBingo.hubSpawnLocation), delay);
             }
 
             ultimateBingo.bingoFunctions.despawnAllItems();

@@ -692,7 +692,16 @@ public class BingoFunctions
      * Uses Paper's async chunk loading to avoid blocking the main thread.
      * Falls back to sync loading if async is unavailable (non-Paper server).
      */
+    // Cooldown map to prevent teleport spam (e.g. death loops)
+    private final Map<UUID, Long> teleportCooldown = new HashMap<>();
+
     public boolean teleportToRandomGround(Player player) {
+        // Cooldown check: at most one teleport per 5 seconds per player
+        long now = System.currentTimeMillis();
+        Long last = teleportCooldown.get(player.getUniqueId());
+        if (last != null && now - last < 5000) return false;
+        teleportCooldown.put(player.getUniqueId(), now);
+
         World world = player.getWorld();
         Random rng = new Random();
 
@@ -772,23 +781,13 @@ public class BingoFunctions
     }
 
     /**
-     * Actually perform the teleport: check safety, pre-warm surroundings, then teleport.
+     * Actually perform the teleport: check safety, then teleport.
+     * (Pre-warming removed — Paper's async chunk system handles surroundings.)
      */
     private boolean teleportTo(Player player, World world, int dx, int dz) {
-        // Ensure the target chunk is loaded
         int cx = dx >> 4, cz = dz >> 4;
         if (!world.isChunkLoaded(cx, cz)) {
             world.getChunkAt(cx, cz);
-        }
-
-        // Pre-warm a 3×3 chunk area around the target to avoid post-teleport freeze
-        for (int ox = -1; ox <= 1; ox++) {
-            for (int oz = -1; oz <= 1; oz++) {
-                int pcx = cx + ox, pcz = cz + oz;
-                if (!world.isChunkLoaded(pcx, pcz)) {
-                    world.getChunkAt(pcx, pcz);
-                }
-            }
         }
 
         int y = world.getHighestBlockYAt(dx, dz);
