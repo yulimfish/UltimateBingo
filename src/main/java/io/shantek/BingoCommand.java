@@ -285,8 +285,10 @@ public class BingoCommand implements CommandExecutor {
                     player.sendMessage(ChatColor.RED + "该命令只能在宾果世界中执行。");
                 } else {
                     if (ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
-                        // Teams mode: show team selection first, join happens on wool click
-                        ultimateBingo.bingoFunctions.resetIndividualPlayer(player, true);
+                        // Teams mode: only reset if not already in game
+                        if (!ultimateBingo.bingoFunctions.isPlayerInGame(player.getUniqueId())) {
+                            ultimateBingo.bingoFunctions.resetIndividualPlayer(player, true);
+                        }
                         String team = ultimateBingo.bingoFunctions.getTeam(player);
                         if (team.equalsIgnoreCase("无") || team.isEmpty()) {
                             player.openInventory(ultimateBingo.bingoPlayerGUIManager.createTeamSelectionGUI(player));
@@ -294,7 +296,9 @@ public class BingoCommand implements CommandExecutor {
                             player.openInventory(ultimateBingo.bingoPlayerGUIManager.createPlayerGUI(player));
                         }
                     } else if (ultimateBingo.currentGameMode.equalsIgnoreCase("group")) {
-                        ultimateBingo.bingoFunctions.resetIndividualPlayer(player, true);
+                        if (!ultimateBingo.bingoFunctions.isPlayerInGame(player.getUniqueId())) {
+                            ultimateBingo.bingoFunctions.resetIndividualPlayer(player, true);
+                        }
                         ultimateBingo.bingoManager.joinGameInProgress(player);
                         player.openInventory(ultimateBingo.bingoPlayerGUIManager.createPlayerGUI(player));
                     } else if (!ultimateBingo.bingoManager.checkHasBingoCard(player)) {
