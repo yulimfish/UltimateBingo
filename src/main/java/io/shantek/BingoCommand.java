@@ -298,6 +298,9 @@ public class BingoCommand implements CommandExecutor {
             ultimateBingo.bingoFunctions.resetPlayers();
             ultimateBingo.bingoFunctions.resetTimeAndWeather();
 
+            // Enable keepInventory in the bingo world
+            commandPlayer.getWorld().setGameRule(GameRule.KEEP_INVENTORY, true);
+
             // Configure game based on card size
             String cardSize = ultimateBingo.currentCardSize;
             switch (cardSize) {

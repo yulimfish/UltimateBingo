@@ -58,7 +58,7 @@ public class EntityDamageListener implements Listener {
                         }
 
                         player.playSound(player.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1.0f, 1.0f);
-                        player.teleport(ultimateBingo.bingoSpawnLocation);
+                        ultimateBingo.bingoFunctions.teleportToRandomGround(player);
 
                         // Also give them night vision
                         if (ultimateBingo.currentGameMode.equals("speedrun") || ultimateBingo.currentGameMode.equals("group") || ultimateBingo.currentGameMode.equalsIgnoreCase("teams")) {
@@ -67,7 +67,7 @@ public class EntityDamageListener implements Listener {
 
                         // Broadcast message to all active players
                         ultimateBingo.bingoFunctions.broadcastMessageToBingoPlayers(
-                                ChatColor.RED + player.getName() + " 死亡并被传送回了宾果出生点。"
+                                ChatColor.RED + player.getName() + " 死亡并被随机传送到了新位置。"
                         );
 
                     }
