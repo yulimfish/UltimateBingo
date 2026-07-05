@@ -1105,21 +1105,23 @@ public class BingoFunctions
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!isActivePlayer(player)) continue;
 
-            try {
-                Iterator<org.bukkit.advancement.Advancement> it =
-                    Bukkit.getServer().advancementIterator();
-                while (it.hasNext()) {
-                    org.bukkit.advancement.Advancement adv = it.next();
+            Iterator<org.bukkit.advancement.Advancement> it =
+                Bukkit.getServer().advancementIterator();
+            int revoked = 0;
+            while (it.hasNext()) {
+                org.bukkit.advancement.Advancement adv = it.next();
+                try {
                     org.bukkit.advancement.AdvancementProgress progress =
                         player.getAdvancementProgress(adv);
                     for (String criteria : progress.getAwardedCriteria()) {
                         progress.revokeCriteria(criteria);
+                        revoked++;
                     }
+                } catch (IllegalArgumentException ignored) {
+                    // Some built-in advancements can't be revoked
                 }
-                cleared++;
-            } catch (Exception ignored) {
-                // Some advancements may fail to revoke, skip
             }
+            if (revoked > 0) cleared++;
         }
         if (cleared > 0 && ultimateBingo.consoleLogs) {
             ultimateBingo.getLogger().info("已清空 " + cleared + " 名玩家的成就进度。");
