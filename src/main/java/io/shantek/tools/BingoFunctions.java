@@ -755,7 +755,10 @@ public class BingoFunctions
                     // Chunk loaded — teleport on main thread
                     Bukkit.getScheduler().runTask(ultimateBingo, () -> {
                         if (player.isOnline()) {
-                            teleportTo(player, world, dx, dz);
+                            if (!teleportTo(player, world, dx, dz)) {
+                                // Unsafe spot (water etc.) — retry
+                                teleportToRandomGround(player);
+                            }
                         }
                     });
                 });
