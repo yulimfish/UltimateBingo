@@ -696,18 +696,23 @@ public class BingoFunctions
         World world = player.getWorld();
         Random rng = new Random();
 
-        double borderSize = ultimateBingo.teleportRadius;
-        if (borderSize <= 0) {
-            // 0 = use world border
-            borderSize = world.getWorldBorder().getSize() / 2.0;
-            if (borderSize <= 0) borderSize = 5000;
+        double radius = ultimateBingo.teleportRadius;
+        if (radius <= 0) {
+            radius = world.getWorldBorder().getSize() / 2.0;
+            if (radius <= 0) radius = 5000;
         }
-        if (borderSize > 8000) borderSize = 8000;
+        if (radius > 8000) radius = 8000;
 
-        // Generate multiple candidates and pick the best one
+        // Center on world spawn
+        Location center = world.getSpawnLocation();
+
+        // Try random points within a circular radius around spawn
         for (int attempt = 0; attempt < 30; attempt++) {
-            int dx = (int)(rng.nextDouble() * borderSize * 2 - borderSize);
-            int dz = (int)(rng.nextDouble() * borderSize * 2 - borderSize);
+            // Uniform distribution inside a circle
+            double angle = rng.nextDouble() * 2 * Math.PI;
+            double dist = radius * Math.sqrt(rng.nextDouble());
+            int dx = center.getBlockX() + (int)(Math.cos(angle) * dist);
+            int dz = center.getBlockZ() + (int)(Math.sin(angle) * dist);
             int cx = dx >> 4, cz = dz >> 4;
 
             // Load chunk if needed (acceptable because only 1 player per tick)
