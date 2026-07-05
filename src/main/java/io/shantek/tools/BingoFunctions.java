@@ -1016,9 +1016,37 @@ public class BingoFunctions
         excludedPlayer.sendTitle("", subtitle, 10, 70, 20);  // 10 ticks fade in, 70 ticks stay, 20 ticks fade out
     }
 
+    /**
+     * Clears all advancements for every active player in the bingo world.
+     * Works with Multiverse per-world advancement tracking.
+     */
+    public void clearAllAdvancements() {
+        int cleared = 0;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            if (!isActivePlayer(player)) continue;
+
+            try {
+                Iterator<org.bukkit.advancement.Advancement> it =
+                    Bukkit.getServer().advancementIterator();
+                while (it.hasNext()) {
+                    org.bukkit.advancement.Advancement adv = it.next();
+                    org.bukkit.advancement.AdvancementProgress progress =
+                        player.getAdvancementProgress(adv);
+                    for (String criteria : progress.getAwardedCriteria()) {
+                        progress.revokeCriteria(criteria);
+                    }
+                }
+                cleared++;
+            } catch (Exception ignored) {
+                // Some advancements may fail to revoke, skip
+            }
+        }
+        if (cleared > 0 && ultimateBingo.consoleLogs) {
+            ultimateBingo.getLogger().info("已清空 " + cleared + " 名玩家的成就进度。");
+        }
+    }
 
     //endregion
-
     //region Player Tracking for Games
 
     // Method to store a UUID in the map
