@@ -160,9 +160,13 @@ public class BingoManager {
                 break;
         }
 
-        // Generate and shuffle tasks (materials + optional advancements) for the card
+        // Pre-roll slot layout and shared advancement count for team fairness
         int[] slots = determineSlotsBasedOnCardSize();
-        List<ItemStack> tasks = generateTasks(difficultyLevel, slots.length);
+        int maxAdv = slots.length / 5;
+        Random advRng = new Random();
+        int sharedAdvCount = maxAdv > 0 ? advRng.nextInt(maxAdv + 1) : 0;
+
+        List<ItemStack> tasks = generateTasks(difficultyLevel, slots.length, sharedAdvCount);
 
 
         // Store the string for the card type
@@ -190,9 +194,9 @@ public class BingoManager {
             ultimateBingo.bingoFunctions.copyInventoryContents(ultimateBingo.redTeamInventory, ultimateBingo.blueTeamInventory);
             ultimateBingo.bingoFunctions.copyInventoryContents(ultimateBingo.redTeamInventory, ultimateBingo.yellowTeamInventory);
         } else {
-            // Cards are unique - generate fresh tasks for each team
+            // Cards are unique - generate fresh tasks for each team, same adv count
             // Yellow team
-            List<ItemStack> yellowTasks = generateTasks(difficultyLevel, slots.length);
+            List<ItemStack> yellowTasks = generateTasks(difficultyLevel, slots.length, sharedAdvCount);
             for (int i = 0; i < slots.length && i < yellowTasks.size(); i++) {
                 ultimateBingo.yellowTeamInventory.setItem(slots[i], yellowTasks.get(i));
             }
@@ -203,7 +207,7 @@ public class BingoManager {
             }
 
             // Blue team
-            List<ItemStack> blueTasks = generateTasks(difficultyLevel, slots.length);
+            List<ItemStack> blueTasks = generateTasks(difficultyLevel, slots.length, sharedAdvCount);
             for (int i = 0; i < slots.length && i < blueTasks.size(); i++) {
                 ultimateBingo.blueTeamInventory.setItem(slots[i], blueTasks.get(i));
             }
@@ -356,6 +360,18 @@ public class BingoManager {
      * @return shuffled list of ItemStacks ready to place into card slots
      */
     public List<ItemStack> generateTasks(int type, int slotCount) {
+        return generateTasks(type, slotCount, -1);
+    }
+
+    /**
+     * Generate a mixed list of ItemStacks for a bingo card.
+     *
+     * @param type          difficulty level (1=easy, 2=normal, 3=hard)
+     * @param slotCount     number of slots on the card
+     * @param fixedAdvCount if >= 0, use this exact number of advancement slots
+     *                      (for team mode consistency); if < 0, randomize (<20%)
+     */
+    public List<ItemStack> generateTasks(int type, int slotCount, int fixedAdvCount) {
         Random random = new Random();
 
         // Step 1: Generate the base material pool
@@ -375,7 +391,12 @@ public class BingoManager {
 
         // Step 4: Determine advancement count (<20%)
         int maxAdv = slotCount / 5;  // floor(slotCount * 0.2)
-        int advCount = maxAdv > 0 ? random.nextInt(maxAdv + 1) : 0;
+        int advCount;
+        if (fixedAdvCount >= 0) {
+            advCount = Math.min(fixedAdvCount, maxAdv);
+        } else {
+            advCount = maxAdv > 0 ? random.nextInt(maxAdv + 1) : 0;
+        }
 
         // Step 5: Replace random positions with advancement tasks
         if (advCount > 0) {
