@@ -165,6 +165,10 @@ public class BingoCommand implements CommandExecutor {
             } else if (args[0].equalsIgnoreCase("records")) {
                 List<RecordBoard.GameRecord> all = ultimateBingo.recordBoard.getAllRecords();
                 if (args.length >= 2 && args[1].equalsIgnoreCase("delete")) {
+                    if (!player.isOp()) {
+                        player.sendMessage(ChatColor.RED + "你没有权限执行该操作！");
+                        return true;
+                    }
                     if (args.length < 3) {
                         player.sendMessage(ChatColor.RED + "用法: /bingo records delete <id>");
                         return true;
