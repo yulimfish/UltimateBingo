@@ -757,8 +757,8 @@ public class BingoFunctions
     }
 
     /**
-     * Attempts to load a chunk via Paper's async API using reflection.
-     * @return true if async load was initiated, false if unavailable
+     * Attempts async chunk load via Paper reflection. If the async never
+     * completes within 3 seconds, falls back to sync load + teleport.
      */
     private boolean loadChunkAsync(Player player, World world,
                                     int dx, int dz, int cx, int cz) {
@@ -770,25 +770,37 @@ public class BingoFunctions
                     (java.util.concurrent.CompletableFuture<org.bukkit.Chunk>)
                     method.invoke(world, cx, cz);
 
-            if (future != null) {
-                future.thenAccept(chunk -> {
-                    // Chunk loaded — teleport on main thread
-                    Bukkit.getScheduler().runTask(ultimateBingo, () -> {
-                        if (player.isOnline()) {
-                            if (!teleportTo(player, world, dx, dz)) {
-                                // Unsafe spot (water etc.) — retry
-                                teleportToRandomGround(player);
-                            }
-                        }
-                    });
+            if (future == null) return false;
+
+            final boolean[] done = {false};
+
+            future.thenAccept(chunk -> {
+                done[0] = true;
+                Bukkit.getScheduler().runTask(ultimateBingo, () -> {
+                    if (player.isOnline() && !teleportTo(player, world, dx, dz)) {
+                        teleportToRandomGround(player);
+                    }
                 });
-                player.sendMessage(ChatColor.YELLOW + "正在传送……");
-                return true;
-            }
-        } catch (Exception ignored) {
-            // Paper API not available, will fall back to sync
+            });
+
+            // Timeout: if async hasn't completed after 60 ticks, sync load
+            Bukkit.getScheduler().runTaskLater(ultimateBingo, () -> {
+                if (!done[0] && player.isOnline()) {
+                    world.getChunkAt(cx, cz);
+                    teleportTo(player, world, dx, dz);
+                }
+            }, 60L);
+
+            player.sendMessage(ChatColor.YELLOW + "正在传送……");
+            return true;
+        } catch (NoSuchMethodException e) {
+            // Paper async API not available
+            return false;
+        } catch (Exception e) {
+            // Reflection failed for another reason
+            ultimateBingo.getLogger().warning("异步传送失败，回退同步: " + e.getMessage());
+            return false;
         }
-        return false;
     }
 
     /**
