@@ -1,32 +1,29 @@
 package io.shantek.managers;
 
 import io.shantek.UltimateBingo;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Stores and ranks historical records: fastest BINGO completions
- * and most tasks ticked off per game. Persisted to records.yml.
- */
 public class RecordBoard {
 
     private final UltimateBingo plugin;
     private final File file;
     private FileConfiguration config;
 
-    // fastest completions: sorted list of {playerName, timeSeconds}
-    private final List<Record> fastestGames = new ArrayList<>();
-    // most tasks completed: playerName → maxTasks
-    private final Map<String, Integer> mostTasks = new LinkedHashMap<>();
+    // All historical records with unique IDs
+    private final List<GameRecord> allRecords = new ArrayList<>();
+    private int nextId = 1;
 
-    // max entries to keep in each category
-    private static final int MAX_RECORDS = 10;
+    // Cached leaderboard for sidebar (top 10)
+    private List<GameRecord> fastestCache = new ArrayList<>();
+    private Map<String, Integer> mostTasksCache = new LinkedHashMap<>();
+    private static final int MAX_LEADERBOARD = 10;
 
     public RecordBoard(UltimateBingo plugin) {
         this.plugin = plugin;
@@ -34,97 +31,121 @@ public class RecordBoard {
         load();
     }
 
-    /** Record a completed game. */
-    public void addGame(String playerName, int tasksCompleted, long durationMillis) {
-        if (playerName == null || tasksCompleted <= 0) return;
+    /** Record a completed game. Returns the assigned ID. */
+    public int addGame(String playerName, int tasksCompleted, long durationMillis, int cardSize) {
+        if (playerName == null || tasksCompleted <= 0) return -1;
 
         int timeSec = (int)(durationMillis / 1000);
+        String date = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date());
 
-        // Fastest games — sorted by time ascending
-        fastestGames.add(new Record(playerName, tasksCompleted, timeSec));
-        fastestGames.sort(Comparator.comparingInt(r -> r.timeSec));
-        while (fastestGames.size() > MAX_RECORDS) fastestGames.remove(fastestGames.size() - 1);
+        GameRecord rec = new GameRecord(nextId, playerName, tasksCompleted, timeSec, cardSize, date);
+        allRecords.add(rec);
+        nextId++;
 
-        // Most tasks — keep best per player
-        int prev = mostTasks.getOrDefault(playerName, 0);
-        if (tasksCompleted > prev) {
-            mostTasks.put(playerName, tasksCompleted);
-        }
-        // Sort by tasks descending, keep top N
-        List<Map.Entry<String, Integer>> sorted = mostTasks.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                .collect(Collectors.toList());
-        mostTasks.clear();
-        for (int i = 0; i < sorted.size() && i < MAX_RECORDS; i++) {
-            mostTasks.put(sorted.get(i).getKey(), sorted.get(i).getValue());
-        }
-
+        rebuildCaches();
         save();
+        return rec.id;
     }
 
-    // ── getters for display ──────────────────────────────
+    /** Delete a record by ID. Returns true if found and deleted. */
+    public boolean deleteRecord(int id) {
+        boolean removed = allRecords.removeIf(r -> r.id == id);
+        if (removed) {
+            rebuildCaches();
+            save();
+        }
+        return removed;
+    }
 
-    public List<Record> getFastestGames() {
-        return new ArrayList<>(fastestGames);
+    /** Get all records sorted by most recent first. */
+    public List<GameRecord> getAllRecords() {
+        List<GameRecord> copy = new ArrayList<>(allRecords);
+        copy.sort((a, b) -> Integer.compare(b.id, a.id)); // newest first
+        return copy;
+    }
+
+    // ── sidebar leaderboard (computed from allRecords) ───
+
+    public List<GameRecord> getFastestGames() {
+        return new ArrayList<>(fastestCache);
     }
 
     public Map<String, Integer> getMostTasks() {
-        return new LinkedHashMap<>(mostTasks);
+        return new LinkedHashMap<>(mostTasksCache);
     }
 
-    // ── persistence ──────────────────────────────────────
+    // ── internal ──────────────────────────────────────────
+
+    private void rebuildCaches() {
+        // Fastest — sorted by time ascending
+        fastestCache = new ArrayList<>(allRecords);
+        fastestCache.sort(Comparator.comparingInt(r -> r.timeSec));
+        if (fastestCache.size() > MAX_LEADERBOARD)
+            fastestCache = fastestCache.subList(0, MAX_LEADERBOARD);
+
+        // Most tasks — keep best per player
+        Map<String, Integer> map = new HashMap<>();
+        for (GameRecord r : allRecords) {
+            map.merge(r.name, r.tasks, Integer::max);
+        }
+        List<Map.Entry<String, Integer>> sorted = map.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .collect(Collectors.toList());
+        mostTasksCache.clear();
+        for (int i = 0; i < sorted.size() && i < MAX_LEADERBOARD; i++)
+            mostTasksCache.put(sorted.get(i).getKey(), sorted.get(i).getValue());
+    }
 
     private void load() {
-        if (!file.exists()) {
-            config = new YamlConfiguration();
-            return;
-        }
+        if (!file.exists()) { config = new YamlConfiguration(); return; }
         config = YamlConfiguration.loadConfiguration(file);
 
-        fastestGames.clear();
-        if (config.contains("fastest")) {
-            for (String key : config.getConfigurationSection("fastest").getKeys(false)) {
-                String path = "fastest." + key;
+        allRecords.clear();
+        if (config.contains("all")) {
+            for (String key : config.getConfigurationSection("all").getKeys(false)) {
+                String path = "all." + key;
+                int id = parseInt(key);
                 String name = config.getString(path + ".name", "???");
                 int tasks = config.getInt(path + ".tasks", 0);
                 int time = config.getInt(path + ".time", 0);
-                fastestGames.add(new Record(name, tasks, time));
+                int size = config.getInt(path + ".size", 0);
+                String date = config.getString(path + ".date", "");
+                allRecords.add(new GameRecord(id, name, tasks, time, size, date));
+                if (id >= nextId) nextId = id + 1;
             }
         }
-
-        mostTasks.clear();
-        if (config.contains("most_tasks")) {
-            for (String name : config.getConfigurationSection("most_tasks").getKeys(false)) {
-                int tasks = config.getInt("most_tasks." + name, 0);
-                if (tasks > 0) mostTasks.put(name, tasks);
-            }
-        }
+        rebuildCaches();
     }
 
     private void save() {
         config = new YamlConfiguration();
-        int i = 0;
-        for (Record r : fastestGames) {
-            String path = "fastest." + i;
+        for (GameRecord r : allRecords) {
+            String path = "all." + r.id;
             config.set(path + ".name", r.name);
             config.set(path + ".tasks", r.tasks);
             config.set(path + ".time", r.timeSec);
-            i++;
+            config.set(path + ".size", r.cardSize);
+            config.set(path + ".date", r.date);
         }
-        for (Map.Entry<String, Integer> e : mostTasks.entrySet()) {
-            config.set("most_tasks." + e.getKey(), e.getValue());
-        }
-        try {
-            config.save(file);
-        } catch (IOException ignored) {
+        try { config.save(file); } catch (IOException ignored) {
             plugin.getLogger().warning("无法保存 records.yml");
         }
     }
 
-    public record Record(String name, int tasks, int timeSec) {
+    private int parseInt(String s) {
+        try { return Integer.parseInt(s); } catch (NumberFormatException e) { return 0; }
+    }
+
+    // ── data class ────────────────────────────────────────
+
+    public record GameRecord(int id, String name, int tasks, int timeSec, int cardSize, String date) {
         public String formattedTime() {
             if (timeSec < 60) return timeSec + "秒";
             return (timeSec / 60) + "分" + (timeSec % 60) + "秒";
+        }
+        public String formattedLine() {
+            return "§6#" + id + " §7| §f" + name + " §7| §a" + tasks + "项 §7| "
+                    + formattedTime() + " §7| " + cardSize + "x" + cardSize + " §7| " + date;
         }
     }
 }

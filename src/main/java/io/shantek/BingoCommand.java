@@ -3,6 +3,7 @@ package io.shantek;
 import io.shantek.managers.BingoManager;
 import io.shantek.managers.InGameConfigManager;
 import io.shantek.managers.PlayerStats;
+import io.shantek.managers.RecordBoard;
 import io.shantek.managers.SettingsManager;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -160,6 +161,48 @@ public class BingoCommand implements CommandExecutor {
             } else if (args[0].equalsIgnoreCase("random")) {
                 // Random teleport - available to all players
                 ultimateBingo.bingoFunctions.teleportToRandomGround(player);
+                return true;
+            } else if (args[0].equalsIgnoreCase("records")) {
+                List<RecordBoard.GameRecord> all = ultimateBingo.recordBoard.getAllRecords();
+                if (args.length >= 2 && args[1].equalsIgnoreCase("delete")) {
+                    if (args.length < 3) {
+                        player.sendMessage(ChatColor.RED + "用法: /bingo records delete <id>");
+                        return true;
+                    }
+                    try {
+                        int id = Integer.parseInt(args[2]);
+                        if (ultimateBingo.recordBoard.deleteRecord(id)) {
+                            player.sendMessage(ChatColor.GREEN + "已删除记录 #" + id);
+                        } else {
+                            player.sendMessage(ChatColor.RED + "未找到记录 #" + id);
+                        }
+                    } catch (NumberFormatException e) {
+                        player.sendMessage(ChatColor.RED + "无效的 ID，请输入数字。");
+                    }
+                    return true;
+                }
+
+                // Paginated view: 10 per page
+                int page = 1;
+                if (args.length >= 2) {
+                    try { page = Integer.parseInt(args[1]); } catch (NumberFormatException ignored) {}
+                    if (page < 1) page = 1;
+                }
+                int perPage = 10;
+                int total = all.size();
+                int totalPages = (int) Math.ceil((double) total / perPage);
+                if (page > totalPages) page = Math.max(1, totalPages);
+
+                player.sendMessage(ChatColor.GOLD + "===== 历史比赛记录 (第 " + page + "/" + totalPages + " 页) =====");
+                int start = (page - 1) * perPage;
+                int end = Math.min(start + perPage, total);
+                for (int i = start; i < end; i++) {
+                    player.sendMessage(all.get(i).formattedLine());
+                }
+                if (all.isEmpty()) {
+                    player.sendMessage(ChatColor.GRAY + "暂无记录。");
+                }
+                player.sendMessage(ChatColor.GRAY + "共 " + total + " 条  |  /bingo records delete <id> 删除");
                 return true;
             } else if (args[0].equalsIgnoreCase("leaderboard")) {
                 if (args.length == 1) {

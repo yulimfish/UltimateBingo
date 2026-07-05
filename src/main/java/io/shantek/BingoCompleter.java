@@ -44,6 +44,7 @@ public class BingoCompleter implements TabCompleter {
             complete.add("info");
             complete.add("card");
             complete.add("random");
+            complete.add("records");
             complete.add("leaderboard");
 
             return StringUtil.copyPartialMatches(args[0], complete, new ArrayList<>());

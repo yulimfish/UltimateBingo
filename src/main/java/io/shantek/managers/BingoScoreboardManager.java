@@ -91,7 +91,7 @@ public class BingoScoreboardManager {
 
     private List<String> buildRecordLines() {
         List<String> out = new ArrayList<>();
-        List<RecordBoard.Record> fastest = plugin.recordBoard.getFastestGames();
+        List<RecordBoard.GameRecord> fastest = plugin.recordBoard.getFastestGames();
         Map<String, Integer> mostTasks = plugin.recordBoard.getMostTasks();
 
         out.add(ChatColor.YELLOW + "最快完成");
@@ -99,7 +99,7 @@ public class BingoScoreboardManager {
             out.add("  " + ChatColor.GRAY + "暂无纪录");
         } else {
             int i = 1;
-            for (RecordBoard.Record r : fastest) {
+            for (RecordBoard.GameRecord r : fastest) {
                 String prefix = i <= 3 ? "§e" + i + ". " : "§7" + i + ". ";
                 out.add(prefix + r.name() + " §a" + r.tasks() + "项 §7" + r.formattedTime());
                 i++;
