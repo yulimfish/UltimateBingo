@@ -785,11 +785,7 @@ public class BingoFunctions
      * (Pre-warming removed — Paper's async chunk system handles surroundings.)
      */
     private boolean teleportTo(Player player, World world, int dx, int dz) {
-        int cx = dx >> 4, cz = dz >> 4;
-        if (!world.isChunkLoaded(cx, cz)) {
-            world.getChunkAt(cx, cz);
-        }
-
+        // Chunk was already verified as loaded by caller — no need for getChunkAt
         int y = world.getHighestBlockYAt(dx, dz);
         Material topBlock = world.getBlockAt(dx, y, dz).getType();
         if (topBlock == Material.WATER || topBlock == Material.LAVA) return false;
