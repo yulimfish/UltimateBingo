@@ -27,6 +27,9 @@ public class BingoPlayerJoinListener implements Listener {
         // Hide scoreboard if player left the active bingo world
         if (!ultimateBingo.bingoFunctions.isActivePlayer(player)) {
             ultimateBingo.bingoScoreboardManager.hideBoard(player);
+        } else if (!ultimateBingo.bingoStarted) {
+            // In bingo world, game not running → show record board
+            ultimateBingo.bingoScoreboardManager.showRecordBoard(player);
         }
 
         // Multi-world: handle entering bingo world
@@ -98,6 +101,11 @@ public class BingoPlayerJoinListener implements Listener {
                         && (ultimateBingo.currentGameMode.equals("speedrun") || ultimateBingo.currentGameMode.equals("group"))) {
                     player.addPotionEffect(new PotionEffect(PotionEffectType.NIGHT_VISION, Integer.MAX_VALUE, 1, false, false, true));
                 }
+            }
+
+            // Game not running → show historical record board
+            if (!ultimateBingo.bingoStarted) {
+                ultimateBingo.bingoScoreboardManager.showRecordBoard(player);
             }
         }
     }

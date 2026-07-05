@@ -479,6 +479,11 @@ public class BingoManager {
                 }
 
                 if (hasBingo) {
+                    // Record the game for historical leaderboard
+                    long duration = System.currentTimeMillis() - ultimateBingo.gameStartTime;
+                    int completed = ultimateBingo.bingoFunctions.countCompleted(inv);
+                    ultimateBingo.recordBoard.addGame(player.getName(), completed, duration);
+
                     // Disable the game
                     ultimateBingo.bingoStarted = false;
 

@@ -58,6 +58,70 @@ public class BingoScoreboardManager {
         if (player.isOnline()) player.setScoreboard(main);
     }
 
+    // ── historical record sidebar ────────────────────────
+
+    /** Show the all-time fastest/most-tasks records for one player. */
+    public void showRecordBoard(Player player) {
+        ScoreboardManager manager = Bukkit.getScoreboardManager();
+        if (manager == null) return;
+        hideBoard(player); // remove any previous game board
+
+        Scoreboard board = manager.getNewScoreboard();
+        Objective obj = board.registerNewObjective("record", "dummy",
+                ChatColor.GOLD + "" + ChatColor.BOLD + "历史纪录");
+        obj.setDisplaySlot(DisplaySlot.SIDEBAR);
+
+        List<String> lines = buildRecordLines();
+        int score = lines.size();
+        for (String line : lines) {
+            obj.getScore(line).setScore(score--);
+        }
+
+        player.setScoreboard(board);
+    }
+
+    /** Show records for every online player in the bingo world. */
+    public void showRecordBoardForAll() {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (plugin.bingoFunctions.isActivePlayer(p)) {
+                showRecordBoard(p);
+            }
+        }
+    }
+
+    private List<String> buildRecordLines() {
+        List<String> out = new ArrayList<>();
+        List<RecordBoard.Record> fastest = plugin.recordBoard.getFastestGames();
+        Map<String, Integer> mostTasks = plugin.recordBoard.getMostTasks();
+
+        out.add(ChatColor.YELLOW + "最快完成");
+        if (fastest.isEmpty()) {
+            out.add("  " + ChatColor.GRAY + "暂无纪录");
+        } else {
+            int i = 1;
+            for (RecordBoard.Record r : fastest) {
+                String prefix = i <= 3 ? "§e" + i + ". " : "§7" + i + ". ";
+                out.add(prefix + r.name() + " §a" + r.tasks() + "项 §7" + r.formattedTime());
+                i++;
+            }
+        }
+
+        out.add(" ");
+        out.add(ChatColor.YELLOW + "最多达成");
+        if (mostTasks.isEmpty()) {
+            out.add("  " + ChatColor.GRAY + "暂无纪录");
+        } else {
+            int i = 1;
+            for (Map.Entry<String, Integer> e : mostTasks.entrySet()) {
+                String prefix = i <= 3 ? "§e" + i + ". " : "§7" + i + ". ";
+                out.add(prefix + e.getKey() + " §a" + e.getValue() + "项");
+                i++;
+            }
+        }
+
+        return out;
+    }
+
     public void hideAllBoards() {
         stopTimeUpdater();
         Scoreboard main = Bukkit.getScoreboardManager().getMainScoreboard();

@@ -576,8 +576,11 @@ public class BingoCommand implements CommandExecutor {
         // Stop shuffle mode if active
         ultimateBingo.bingoManager.stopShuffleMode();
 
-        // Hide all scoreboards
+        // Hide all game scoreboards
         ultimateBingo.bingoScoreboardManager.hideAllBoards();
+
+        // Show record leaderboard for all players in bingo world
+        ultimateBingo.bingoScoreboardManager.showRecordBoardForAll();
 
         ultimateBingo.bingoCardActive = false;
         ultimateBingo.bingoStarted = false;
