@@ -1154,6 +1154,11 @@ public class BingoFunctions
         manualTeamAssignments.clear();
     }
 
+    public void clearTeams() {
+        playerTeamsMap.clear();
+        manualTeamAssignments.clear();
+    }
+
     public void assignTeams() {
         List<Player> onlinePlayers = new ArrayList<>(Bukkit.getOnlinePlayers());
         List<Player> redTeam = new ArrayList<>();
