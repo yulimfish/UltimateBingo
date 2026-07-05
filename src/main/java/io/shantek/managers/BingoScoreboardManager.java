@@ -140,7 +140,7 @@ public class BingoScoreboardManager {
                 stopTimeUpdater();
                 return;
             }
-            refreshTimeOnly();
+            rebuildAll();
         }, 20L, 20L);
     }
 
@@ -151,32 +151,9 @@ public class BingoScoreboardManager {
         }
     }
 
-    /** Lightweight: only updates the time lines, keeps rankings intact. */
-    private void refreshTimeOnly() {
-        String timeLine = buildTimeLine();
-        for (Map.Entry<UUID, Scoreboard> entry : playerBoards.entrySet()) {
-            Player p = Bukkit.getPlayer(entry.getKey());
-            if (p == null || !p.isOnline()) continue;
-
-            Scoreboard board = entry.getValue();
-            Objective obj = board.getObjective("bingo");
-            if (obj == null) continue;
-
-            // Remove old time/footer entries (score 0-1) and add updated time
-            for (String s : board.getEntries()) {
-                Score score = obj.getScore(s);
-                if (score.getScore() <= 1) board.resetScores(s);
-            }
-            obj.getScore(timeLine).setScore(1);
-        }
-    }
-
     // ─── internal ────────────────────────────────────────
 
     private void rebuildAll() {
-        // Gather data once
-        List<String> lines = buildLines();
-
         for (Map.Entry<UUID, Scoreboard> entry : playerBoards.entrySet()) {
             Player p = Bukkit.getPlayer(entry.getKey());
             if (p == null || !p.isOnline()) continue;
@@ -185,10 +162,9 @@ public class BingoScoreboardManager {
             Objective obj = board.getObjective("bingo");
             if (obj == null) continue;
 
-            // Clear old entries
             for (String s : board.getEntries()) board.resetScores(s);
 
-            // Write new entries (higher score = higher position on sidebar)
+            List<String> lines = buildLines(p);
             int score = lines.size();
             for (String line : lines) {
                 obj.getScore(line).setScore(score--);
@@ -198,12 +174,12 @@ public class BingoScoreboardManager {
         }
     }
 
-    private List<String> buildLines() {
-        boolean isTeams  = plugin.currentGameMode.equalsIgnoreCase("teams");
-        boolean isGroup  = plugin.currentGameMode.equalsIgnoreCase("group");
+    private List<String> buildLines(Player viewer) {
+        boolean isTeams = plugin.currentGameMode.equalsIgnoreCase("teams");
+        boolean isGroup = plugin.currentGameMode.equalsIgnoreCase("group");
 
         if (isGroup) return buildGroupLines();
-        if (isTeams)  return buildTeamLines();
+        if (isTeams) return buildTeamLines(viewer);
         return buildIndividualLines();
     }
 
@@ -250,7 +226,7 @@ public class BingoScoreboardManager {
 
     // ── team ranking ──────────────────────────────────────
 
-    private List<String> buildTeamLines() {
+    private List<String> buildTeamLines(Player viewer) {
         List<String> out = new ArrayList<>();
         int totalItems = getTotalItems();
 
@@ -269,6 +245,32 @@ public class BingoScoreboardManager {
 
         out.add(" ");
         out.add(buildTimeLine());
+        out.add(" ");
+
+        // Show viewer's teammates
+        String myTeam = plugin.bingoFunctions.getTeam(viewer);
+        if (myTeam != null && !myTeam.equalsIgnoreCase("无")) {
+            String teamName = switch (myTeam.toLowerCase()) {
+                case "red" -> "§c红队队友";
+                case "blue" -> "§9蓝队队友";
+                case "yellow" -> "§e黄队队友";
+                default -> "队友";
+            };
+            out.add(teamName);
+            boolean hasTeammate = false;
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                if (!plugin.bingoFunctions.isActivePlayer(p)) continue;
+                if (p.equals(viewer)) continue;
+                String t = plugin.bingoFunctions.getTeam(p);
+                if (myTeam.equalsIgnoreCase(t)) {
+                    out.add(" §7" + p.getName());
+                    hasTeammate = true;
+                }
+            }
+            if (!hasTeammate) {
+                out.add(" §7只有你自己");
+            }
+        }
 
         return out;
     }
